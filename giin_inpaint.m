@@ -1,88 +1,132 @@
-function [ pixels, patches, Pinformation, impacted_patches ] = giin_inpaint( vertex, G, pixels, patches, Pinformation, gparam )
-%GIIN_INPAINT Inpaint the specified patch and returns the impacted vertices.
-%   Detailed explanation goes here
+function [ G, pixels, Pstructure, Pinformation ] = giin_inpaint( G, pixels, patches, gparam, liveplot )
+%GIIN_INPAINT Inpaint a signal and update the corresponding graph.
+%   Usage :
+%       G = giin_inpaint( G, pixels, patches, gparam, liveplot )
+%       [ G, pixels ] = giin_inpaint( G, pixels, patches, gparam, liveplot )
+%       [ G, pixels, Pstructure, Pinformation ] = giin_inpaint( G, pixels, patches, gparam, liveplot )
+%
+%   Input parameters :
+%       G        : GSPbox graph structure
+%       pixels   : pixel signal
+%       patches  : patch signal (could be created)
+%       gparam   : parameter structure
+%       liveplot : true to plot the process evolution
+%
+%   Output parameters :
+%       G            : retrieved graph
+%       pixels       : updated pixel signal
+%       Pstructure   : priority signal according to structure
+%       Pinformation : priority signal according to information / confidence
+%
 
-tic;
+% Author: Michaël Defferrard
+% Date: November 2014
 
-%% Impacted patches, i.e. patches that should be investigated next
-% List of impacted patches, i.e. patches where an unknown pixel is now
-% known. If the value is solely modified, it's not impacted (otherwise we
-% would never be able to stop).
+tstart = tic;
 
-height = max(G.coords(:,2));
+% Each unknown pixel has a value of -1e3. A patch with 4 unknown pixels
+% will end up with a value of -4. The minimum is -psize^2.
+unknowns = (patches<0) .* patches;
+unknowns = sum(unknowns,2) / 1e3;
 
-% Pixel vertices contained in a patch.
-patch_pixels = giin_patch_vertices('pixels', gparam.graph.psize, height);
+% List of new vertices considered for inpainting.
+% news = find(unknowns<0).';
+currents = [];
+inpainted = [];
 
-impacted_pixels = patch_pixels .* (patches(vertex,1:end-2)<0);
-[~,~,impacted_pixels] = find(impacted_pixels);
+% Patches which contain no other information than their position cannot be
+% connected in the non-local graph.
 
-if isempty(impacted_pixels)
-    warning('No new unknown pixel inpainted.');
-    impacted_patches = [];
-else
-    impacted_patches = repmat(patch_pixels, length(impacted_pixels), 1);
-    impacted_patches = impacted_patches + repmat(impacted_pixels.', 1, length(impacted_patches));
-    impacted_patches = reshape(impacted_patches, 1, []);
-    impacted_patches = unique(impacted_patches);
-    impacted_patches = impacted_patches + vertex;
+fprintf('There is %d incomplete patches :\n', sum(unknowns<0));
+fprintf('  %d without any information\n', sum(unknowns==-gparam.graph.psize^2));
+% fprintf('  %d considered for inpainting\n', length(news));
+
+% List of fully known patches to which we can connect.
+knowns = find(unknowns==0);
+if sum(unknowns<0)+length(knowns) ~= G.N
+    error('Missing vertices !');
 end
 
-%% Inpaint the patch
+% Structure priority.
+Pstructure = nan(G.N, 1);
 
-% Retrieve pixel values.
-switch(gparam.inpainting.retrieve)
-    % Weighted average of connected patches.
-    case 'average'
-        new = G.W(vertex,:) * patches / norm(G.W(vertex,:),1);
-    % Copy of the strongest connected patch.
-    case 'copy'
-        [~,strongest] = max(G.W(vertex,:));
-        new = patches(strongest,:);
-end
-
-% Compose the new patch.
-switch(gparam.inpainting.compose)
-    % Keep valid pixels, only inpaint unknown ones.
-    case 'mixed'
-        M = patches(vertex,:)>=0;
-    % Inpaint the entire patch, i.e. replace known pixels.
-    case 'overwrite'
-        M = [zeros(1,gparam.graph.psize^2), ones(1,2)];
-end
-
-% Inpaint the patch.
-old = patches(vertex,:);
-patches(vertex,:) = old .* M + new .* ~M;
-
-%% Update the signals.
-
-% Update pixel values.
-pixels(vertex+patch_pixels) = patches(vertex,1:end-2).';
-
-% Update pixels information priorities.
-new = Pinformation(vertex,2);
-new = repmat(new, length(patch_pixels), 1);
-old = Pinformation(vertex+patch_pixels,1);
-Pinformation(vertex+patch_pixels,1) = old .* M(1:end-2).' + new .* ~M(1:end-2).';
-
-% Patch vertices affected by a patch.
-patch_patches = giin_patch_vertices('patches', gparam.graph.psize, height);
-
-% Update neighboring (not necessarily impacted) patches.
-% dim = gparam.psize^2;
-% margin = floor(gparam.psize / 2);
-% inpainted = reshape(pixels,height,width);
-for patch = vertex+patch_patches
-%     h = mod(patch-1, height) + 1;
-%     w = floor((patch-1) / height) + 1;
-%     patches(patch, 1:dim) = reshape(inpainted(h-margin:h+margin, w-margin:w+margin), 1, dim);
-    patches(patch,1:end-2) = pixels(patch+patch_pixels);
-    % Update patches information priorities.
+% Information priority. First column is pixels priority, second is patches.
+Pinformation(:,1) = double(pixels>0);
+Pinformation(:,2) = nan(G.N,1);
+patch_pixels = giin_patch_vertices('pixels', gparam.graph.psize, max(G.coords(:,2)));
+for patch = find(unknowns<0).'
     Pinformation(patch,2) = mean(Pinformation(patch+patch_pixels,1));
 end
 
-% Execution time.
-% fprintf('giin_inpaint : %f seconds\n', toc);
+% currents  : vertices to be inpainted
+% news      : vertices to be connected, i.e. newly considered pixels
+% inpainted : vertices already inpainted, to avoid an infinite loop
+
+% Until no more vertices to inpaint.
+first = true;
+while ~isempty(currents) || first
+    first = false;
+    
+    % Each unknown pixel has a value of -1e3. A patch with 4 unknown pixels
+    % will end up with a value of -4. The minimum is -psize^2.
+    unknowns = (patches<0) .* patches;
+    unknowns = sum(unknowns,2) / 1000;
+    
+    news = find(unknowns<0).';
+
+    % We only consider patches with less than some number of missing pixels.
+    news = news(unknowns(news)>=-gparam.connect.max_unknown_pixels);
+    % Which are not already connected.
+    news = news(~ismember(news, currents));
+    % Neither already visited (to prevent infinite loop and reconnections).
+    news = news(~ismember(news, inpainted));
+    currents = [currents, news]; %#ok<AGROW>
+
+    if any(ismember(currents, inpainted))
+        error('A vertex could be visited again !');
+    end
+    
+    % What if some patch has no more unknown pixels ?
+    % Do we always inpaint over ?
+
+    % Connect the newly reachable vertices.
+    G = giin_connect(G, news, knowns, patches, gparam);
+
+    % Compute their priorities, i.e. update the priority signal.
+    Pstructure = giin_priorities(news, Pstructure, G, gparam);
+
+    % TODO: we also need to take into account the data priority, and normalize
+    % the two to give them the same weight.
+
+    % Highest priority patch. Negate the value so that it won't be selected
+    % again while we keep the information ([0,1] --> [-1,-2]).
+    [~,vertex] = max(Pstructure .* Pinformation(:,2));
+    Pstructure(vertex) = -1-Pstructure(vertex);
+
+    % Update pixels and patches.
+    [pixels, patches, Pinformation, ~] = giin_inpaint_patch(vertex, G, pixels, patches, Pinformation, gparam);
+
+    % Remove the currently impainted vertex from the lists.
+%     news = news(news~=vertex);
+    currents = currents(currents~=vertex);
+    inpainted = [inpainted, vertex]; %#ok<AGROW>
+    
+    % Live plot.
+    if liveplot
+        figure(10);
+        width = max(G.coords(:,1));
+        height = max(G.coords(:,2));
+        imshow(reshape(pixels,height,width), 'InitialMagnification',600);
+        drawnow;
+    end
+
+    fprintf('Inpainted vertices : %d (%d waiting)\n', length(inpainted), length(currents));
+end
+
+% Restore priorities.
+Pstructure = -1-Pstructure;
+
+% Execution time
+fprintf('Iterative inpainting : %f\n', toc(tstart));
 
 end
