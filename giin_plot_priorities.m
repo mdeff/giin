@@ -23,7 +23,7 @@ for n = 1:length(vertices)
     % Binary edge image.
     fig2 = figure(101);
     subplot(floor(Nplots), ceil(Nplots), find(vertex==vertices));
-    bin = diffused(:,n) > gparam.priority_threshold;
+    bin = diffused(:,n) > gparam.priority.threshold;
     bin = reshape(bin, height, width);
     imshow(bin);
     title(['Vertex ',num2str(vertex)]);

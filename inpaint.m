@@ -15,19 +15,19 @@ plot = true;
 savefig = false;
 
 % Algorithm parameters.
-gparam.psize = 5; % Patch size.
-gparam.knn = 10; % Patch graph minimum number of connections (KNN).
-gparam.sigma = 1e-8; % Variance of the distance kernel. We want the graph weights to be spread.
-gparam.loc = 0.001; % Importance of local information. (default 0.001, 0.1)
-gparam.priority_threshold = 1e-3; % Threshold when creating priority from diffused energy.
-gparam.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes).
-gparam.heat_scale = 50; % Depends on sigma. 1000 for lena
-gparam.max_unknown_pixels = gparam.psize; % Maximum number of unknown pixels to connect a patch.
-gparam.inpainting_retrieve = 'copy'; % Average connected patches or copy the strongest.
-gparam.inpainting_compose = 'overwrite'; % Keep known pixels or overwrite everything.
-gparam.optim_prior = 'thikonov'; % Global optimization constraint : thikonov or tv.
-gparam.optim_maxit = 100; % Maximum number of iterations.
-gparam.optim_sigma = 0; % Noise level.
+gparam.graph.psize = 5; % Patch size.
+gparam.graph.knn = 10; % Patch graph minimum number of connections (KNN).
+gparam.graph.sigma = 1e-8; % Variance of the distance kernel. We want the graph weights to be well spread.
+gparam.graph.loc = 0.001; % Importance of local information. (default 0.001, 0.1)
+gparam.connect.max_unknown_pixels = gparam.graph.psize; % Maximum number of unknown pixels to connect a patch.
+gparam.priority.threshold = 1e-3; % Threshold when creating priority from diffused energy.
+gparam.priority.heat_scale = 50; % Depends on sigma. 1000 for lena
+gparam.priority.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes).
+gparam.inpainting.retrieve = 'copy'; % Average connected patches or copy the strongest.
+gparam.inpainting.compose = 'overwrite'; % Keep known pixels or overwrite everything.
+gparam.optim.prior = 'thikonov'; % Global optimization constraint : thikonov or tv.
+gparam.optim.maxit = 100; % Maximum number of iterations.
+gparam.optim.sigma = 0; % Noise level.
 
 %% Image
 
@@ -41,13 +41,13 @@ tic;
 
 % We want some local information for the spatially close patches to be
 % connected in case of large uniform surfaces.
-param.rho = gparam.loc;
+param.rho = gparam.graph.loc;
 
-param.patch_size = gparam.psize;
+param.patch_size = gparam.graph.psize;
 param.nnparan.center = 0;
 param.nnparam.resize = 0;
-param.nnparam.k = gparam.knn;
-param.nnparam.sigma = gparam.sigma;
+param.nnparam.k = gparam.graph.knn;
+param.nnparam.sigma = gparam.graph.sigma;
 [G, pixels, patches] = gsp_patch_graph(obsimg, param);
 
 % Execution time.
@@ -57,7 +57,7 @@ if plot
     figure();
     hist(G.W(:), -.05:.1:1);
     xlim([eps,1]);
-    title(['Graph weights distribution, \sigma=',num2str(gparam.sigma)]);
+    title(['Graph weights distribution, \sigma=',num2str(gparam.graph.sigma)]);
 end
 
 clear param
@@ -103,7 +103,7 @@ inpainted = [];
 % connected in the non-local graph.
 
 fprintf('There is %d incomplete patches :\n', sum(unknowns<0));
-fprintf('  %d without any information\n', sum(unknowns==-gparam.psize^2));
+fprintf('  %d without any information\n', sum(unknowns==-gparam.graph.psize^2));
 % fprintf('  %d considered for inpainting\n', length(news));
 
 % List of fully known patches to which we can connect.
@@ -118,7 +118,7 @@ Pstructure = nan(G.N, 1);
 % Information priority. First column is pixels priority, second is patches.
 Pinformation(:,1) = double(pixels>0);
 Pinformation(:,2) = nan(G.N,1);
-patch_pixels = giin_patch_vertices('pixels', gparam.psize, imsize);
+patch_pixels = giin_patch_vertices('pixels', gparam.graph.psize, imsize);
 for patch = find(unknowns<0).'
     Pinformation(patch,2) = mean(Pinformation(patch+patch_pixels,1));
 end
@@ -140,7 +140,7 @@ while ~isempty(currents) || first
     news = find(unknowns<0).';
 
     % We only consider patches with less than some number of missing pixels.
-    news = news(unknowns(news)>=-gparam.max_unknown_pixels);
+    news = news(unknowns(news)>=-gparam.connect.max_unknown_pixels);
     % Which are not already connected.
     news = news(~ismember(news, currents));
     % Neither already visited (to prevent infinite loop and reconnections).
@@ -238,13 +238,13 @@ param_b2.y = y;
 param_b2.A = @(x) M.*x;
 param_b2.At = @(x) M.*x;
 param_b2.tight = 1;
-param_b2.epsilon = gparam.optim_sigma*sqrt(sum(M(:)));
+param_b2.epsilon = gparam.optim.sigma*sqrt(sum(M(:)));
 fdata.prox = @(x,T) proj_b2(x,T,param_b2);
 fdata.eval = @(x) eps;
 
 % Prior.
 param_prior.verbose = verbose-1;
-switch(gparam.optim_prior)
+switch(gparam.optim.prior)
     
     % Thikonov prior.
     case 'thikonov'
@@ -262,7 +262,7 @@ end
 % Solve the convex optimization problem.
 param_solver.verbose = verbose;
 param_solver.tol = 1e-7;
-param_solver.maxit = gparam.optim_maxit;
+param_solver.maxit = gparam.optim.maxit;
 tic;
 [sol, info] = douglas_rachford(y,fprior,fdata,param_solver);
 
@@ -286,7 +286,7 @@ imshow(reshape(pixels,imsize,imsize));
 title('Inpainted');
 subplot(2,2,4);
 imshow(reshape(sol,imsize,imsize));
-title(['Globally optimized (',gparam.optim_prior,')']);
+title(['Globally optimized (',gparam.optim.prior,')']);
 saveas(gcf,'results/inpainting_last.png');
 
 % Reconstruction errors.

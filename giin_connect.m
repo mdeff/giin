@@ -4,7 +4,7 @@ function [ Gnew ] = giin_connect( Gold, vertices, knowns, patches, gparam )
 
 tic;
 
-knn = gparam.knn;
+knn = gparam.graph.knn;
 spi = zeros(knn*length(vertices),1);
 spj = zeros(knn*length(vertices),1);
 spv = zeros(knn*length(vertices),1);
@@ -27,7 +27,7 @@ for ii = 1:length(vertices)
     start = (ii-1)*knn+1;
     spi(start:start+knn-1) = vertex;
     spj(start:start+knn-1) = idx(1:knn);
-    spv(start:start+knn-1) = exp(-e(idx(1:knn)).^2 / gparam.sigma);
+    spv(start:start+knn-1) = exp(-e(idx(1:knn)).^2 / gparam.graph.sigma);
 end
 
 % The new connections.

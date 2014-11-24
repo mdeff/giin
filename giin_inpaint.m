@@ -9,11 +9,10 @@ tic;
 % known. If the value is solely modified, it's not impacted (otherwise we
 % would never be able to stop).
 
-width = max(G.coords(:,1));
 height = max(G.coords(:,2));
 
 % Pixel vertices contained in a patch.
-patch_pixels = giin_patch_vertices('pixels', gparam.psize, height);
+patch_pixels = giin_patch_vertices('pixels', gparam.graph.psize, height);
 
 impacted_pixels = patch_pixels .* (patches(vertex,1:end-2)<0);
 [~,~,impacted_pixels] = find(impacted_pixels);
@@ -32,7 +31,7 @@ end
 %% Inpaint the patch
 
 % Retrieve pixel values.
-switch(gparam.inpainting_retrieve)
+switch(gparam.inpainting.retrieve)
     % Weighted average of connected patches.
     case 'average'
         new = G.W(vertex,:) * patches / norm(G.W(vertex,:),1);
@@ -43,13 +42,13 @@ switch(gparam.inpainting_retrieve)
 end
 
 % Compose the new patch.
-switch(gparam.inpainting_compose)
+switch(gparam.inpainting.compose)
     % Keep valid pixels, only inpaint unknown ones.
     case 'mixed'
         M = patches(vertex,:)>=0;
     % Inpaint the entire patch, i.e. replace known pixels.
     case 'overwrite'
-        M = [zeros(1,gparam.psize^2), ones(1,2)];
+        M = [zeros(1,gparam.graph.psize^2), ones(1,2)];
 end
 
 % Inpaint the patch.
@@ -68,7 +67,7 @@ old = Pinformation(vertex+patch_pixels,1);
 Pinformation(vertex+patch_pixels,1) = old .* M(1:end-2).' + new .* ~M(1:end-2).';
 
 % Patch vertices affected by a patch.
-patch_patches = giin_patch_vertices('patches', gparam.psize, height);
+patch_patches = giin_patch_vertices('patches', gparam.graph.psize, height);
 
 % Update neighboring (not necessarily impacted) patches.
 % dim = gparam.psize^2;

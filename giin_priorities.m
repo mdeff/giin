@@ -8,7 +8,7 @@ tic;
 G = gsp_estimate_lmax(G);
 
 % Heat kernel.
-Hk = gsp_design_heat(G, gparam.heat_scale);
+Hk = gsp_design_heat(G, gparam.priority.heat_scale);
 % gsp_plot_filter(G, Hk);
 
 % Create the Kronecker deltas.
@@ -19,7 +19,7 @@ deltas = deltas(:,vertices);
 diffused = gsp_filter_analysis(G, Hk, deltas);
 
 % Update priority signal. Normalized in [0,1].
-Pstructure(vertices) = sum(diffused > gparam.priority_threshold, 1);% / G.N^2;
+Pstructure(vertices) = sum(diffused > gparam.priority.threshold, 1);% / G.N^2;
 
 % Execution time.
 % fprintf('giin_priorities : %f seconds\n', toc);
