@@ -68,7 +68,7 @@ clear param
 
 if plot
     % Signal graph.
-    fig = figure();
+    fig = figure(); %#ok<UNRCH>
 
     % Any negative value is a missing pixel --> red.
     cmap = [1,0,0;gray];
@@ -95,7 +95,7 @@ unknowns = (patches<0) .* patches;
 unknowns = sum(unknowns,2) / 1000;
 
 % List of new vertices considered for inpainting.
-news = find(unknowns<0).';
+% news = find(unknowns<0).';
 currents = [];
 inpainted = [];
 
@@ -136,7 +136,7 @@ while ~isempty(currents) || first
     news = news(~ismember(news, currents));
     % Neither already visited (to prevent infinite loop and reconnections).
     news = news(~ismember(news, inpainted));
-    currents = [currents, news];
+    currents = [currents, news]; %#ok<AGROW>
 
     if any(ismember(currents, inpainted))
         error('A vertex could be visited again !');
@@ -159,16 +159,16 @@ while ~isempty(currents) || first
     priorities(vertex) = -1-priorities(vertex);
 
     % Update pixels and patches.
-    [pixels, patches, news] = giin_inpaint(vertex, G, pixels, patches, gparam);
+    [pixels, patches, ~] = giin_inpaint(vertex, G, pixels, patches, gparam);
 
     % Remove the currently impainted vertex from the lists.
 %     news = news(news~=vertex);
     currents = currents(currents~=vertex);
-    inpainted = [inpainted, vertex];
+    inpainted = [inpainted, vertex]; %#ok<AGROW>
     
     % Live plot.
     if plot
-        figure(10);
+        figure(10); %#ok<UNRCH>
         width = max(G.coords(:,1));
         height = max(G.coords(:,2));
         imshow(reshape(pixels,height,width), 'InitialMagnification',600);
@@ -186,7 +186,8 @@ clear unknowns news currents vertex first knowns
 %% Visualize priorities
 
 if plot
-    vertices = [2238,4370,3493,3589,4380,5703]; % 2238,4370,3600
+    % 2238,4370,3600
+    vertices = [2238,4370,3493,3589,4380,5703]; %#ok<UNRCH>
     giin_plot_priorities(vertices, priorities, G, gparam, savefig);
 end
 
