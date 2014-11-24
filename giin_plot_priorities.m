@@ -39,9 +39,9 @@ for n = 1:length(vertices)
 end
 
 if savefig
-    saveas(fig1,[imtype,'_heat',num2str(heat_scale),'_diffusion.png']);
-    saveas(fig2,[imtype,'_heat',num2str(heat_scale),'_bin.png']);
-    saveas(fig3,[imtype,'_heat',num2str(heat_scale),'_hough.png']);
+    saveas(fig1,['results/_heat',num2str(gparam.priority.heat_scale),'_diffusion.png']);
+    saveas(fig2,['results/_heat',num2str(gparam.priority.heat_scale),'_bin.png']);
+    saveas(fig3,['results/_heat',num2str(gparam.priority.heat_scale),'_hough.png']);
 end
 
 end
