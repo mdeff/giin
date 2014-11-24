@@ -7,17 +7,21 @@
 close all; clear; clc;
 gsp_start();
 
+% Experiment parameters.
 imtype = 'lena3'; % Type of line.
-imsize = 100;         % Image size.
-holesize = 20;
+imsize = 100; % Image size.
+holesize = 20; % Hole size.
+plot = true;
+savefig = false;
 
-gparam.psize = 5;  % Patch size.
-gparam.knn = 10;  % Patch graph minimum number of connections (KNN).
-gparam.sigma = 0.1; % Variance of the distance kernel.
-gparam.loc = 0.001;  % Importance of local information. (default 0.001, 0.1)
+% Algorithm parameters.
+gparam.psize = 5; % Patch size.
+gparam.knn = 10; % Patch graph minimum number of connections (KNN).
+gparam.sigma = 1e-8; % Variance of the distance kernel. We want the graph weights to be spread.
+gparam.loc = 0.001; % Importance of local information. (default 0.001, 0.1)
 gparam.priority_threshold = 1e-3; % Threshold when creating priority from diffused energy.
 gparam.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes).
-gparam.heat_scale = 500; % 1000 for lena
+gparam.heat_scale = 50; % Depends on sigma. 1000 for lena
 gparam.max_unknown_pixels = gparam.psize; % Maximum number of unknown pixels to connect a patch.
 gparam.inpainting_retrieve = 'copy'; % Average connected patches or copy the strongest.
 gparam.inpainting_compose = 'overwrite'; % Keep known pixels or overwrite everything.
@@ -25,21 +29,10 @@ gparam.optim_prior = 'thikonov'; % Global optimization constraint : thikonov or 
 gparam.optim_maxit = 100; % Maximum number of iterations.
 gparam.optim_sigma = 0; % Noise level.
 
-plot = true;
-savefig = false;
-
 %% Image
 
-[img, vertices] = giin_image(imtype, imsize, gparam);
-
-% Unknown pixels are negative (known ones are in [0,1]).
-% Negative enough such that they won't connect to anything other than other unknown patches.
-imsize = length(img);
-bordersize = (imsize-holesize)/2;
-xyrange = bordersize+1:imsize-bordersize;
-obsimg = img;
-obsimg(xyrange,xyrange) = -1e3;
-clear imtype holesize bordersize xyrange
+[img, obsimg, vertices] = giin_image(imtype, imsize, holesize);
+clear imtype holesize
 
 %% Patch graph
 % Unknown patches are disconnected.
@@ -59,6 +52,13 @@ param.nnparam.sigma = gparam.sigma;
 
 % Execution time.
 fprintf('Time to create graph : %f seconds\n', toc);
+
+if plot
+    figure();
+    hist(G.W(:), -.05:.1:1);
+    xlim([eps,1]);
+    title(['Graph weights distribution, \sigma=',num2str(gparam.sigma)]);
+end
 
 clear param
 
@@ -80,14 +80,14 @@ if plot
 %     param.show_edges = true; % very slow
 
     gsp_plot_signal(G, pixels, param);
-    if savefig, saveas(gcf,[imtype,'_patch_graph.png']); end
+    if savefig, saveas(gcf,['results/',imtype,'_patch_graph.png']); end
 
     clear param fig cmap
 end
 
 %% Iterative inpainting
 
-tic;
+tstart = tic;
 
 % Each unknown pixel has a value of -1e3. A patch with 4 unknown pixels
 % will end up with a value of -4. The minimum is -psize^2.
@@ -192,15 +192,14 @@ end
 Pstructure = -1-Pstructure;
 
 % Execution time
-fprintf('Iterative inpainting : %f\n', toc);
+fprintf('Iterative inpainting : %f\n', toc(tstart));
 
-clear unknowns news currents vertex first knowns
+clear unknowns news currents vertex first knowns tstart
 
 %% Visualize priorities
 
 if plot
     % Show some vertices of interest.
-    vertices = [2238,4370,3493,3589,4380,5703]; %#ok<UNRCH>
     giin_plot_priorities(vertices, G, gparam, savefig);
     
     % Plot the various priorities.
@@ -288,7 +287,7 @@ title('Inpainted');
 subplot(2,2,4);
 imshow(reshape(sol,imsize,imsize));
 title(['Globally optimized (',gparam.optim_prior,')']);
-saveas(gcf,'inpainting_last.png');
+saveas(gcf,'results/inpainting_last.png');
 
 % Reconstruction errors.
 fprintf('Observed image error (L2-norm) : %f\n', norm(reshape(img,[],1) - y));
