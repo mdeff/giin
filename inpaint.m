@@ -25,22 +25,8 @@ sol = giin_global(G, obsimg, gparam);
 %% Visualize graph with image signal
 
 if plot
-    % Signal graph.
-    fig = figure(); %#ok<UNRCH>
-
-    % Any negative value is a missing pixel --> red.
-    cmap = [1,0,0;gray];
-    colormap(fig, cmap);
-    param.climits = [-1/(length(cmap)-1),1];
-    
-    param.colorbar = 0;
-%     param.vertex_highlight = connected; % draw by hand in different colors instead
-%     param.show_edges = true; % very slow
-
-    gsp_plot_signal(G, pixels, param);
+    giin_plot_signal(G, pixels, false);
     if savefig, saveas(gcf,['results/',imtype,'_patch_graph.png']); end
-
-    clear param fig cmap
 end
 
 %% Visualize priorities
@@ -83,7 +69,7 @@ title('Inpainted');
 subplot(2,2,4);
 imshow(reshape(sol,imsize,imsize));
 title(['Globally optimized (',gparam.optim.prior,')']);
-saveas(gcf,'results/inpainting_last.png');
+saveas(gcf,'results/inpainting.png');
 
 % Reconstruction errors.
 % fprintf('Observed image error (L2-norm) : %f\n', norm(reshape(img,[],1) - y));

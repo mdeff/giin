@@ -18,6 +18,10 @@ function [ img, obsimg, vertices ] = giin_image( imtype, imsize, holesize )
 % Date: November 2014
 
 if nargin < 3
+    holesize = 0;
+end
+
+if nargin < 2
     imsize = 30;
 end
 
@@ -51,7 +55,7 @@ switch(imtype)
         img = imread('../lena.png');
         img = imcrop(img, [100,100,imsize-1,imsize-1]);
         img = double(img) / 255;
-        vertices = [-40,40 ; -26,-20 ; -6,-3 ; 10,1 ; 16,7];
+        vertices = [-40,40 ; -26,-20 ; -6,-3 ; 10,1 ; 16,10 ; 20,23];
     case 'lena3'
         imsize = 100;
         img = imread('../lena.png');
