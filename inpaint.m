@@ -1,11 +1,15 @@
-% Inpaint the missing pixels of an image.
+% Retrieve the missing pixels of an image.
+% The goal of this script is to inpaint the missing pixels of an image. It
+% does so by constructing a patch graph of the known pixels. According to
+% some priority, it then iteratively connect unknown patches to the graph.
+% A global optimization is run in the end.
 
 close all; clear; clc;
 gsp_start();
 
 imtype = 'lena3'; % Type of line.
 imsize = 100;         % Image size.
-holesize = 40;
+holesize = 20;
 
 gparam.psize = 5;  % Patch size.
 gparam.knn = 10;  % Patch graph minimum number of connections (KNN).
@@ -17,6 +21,9 @@ gparam.heat_scale = 500; % 1000 for lena
 gparam.max_unknown_pixels = gparam.psize; % Maximum number of unknown pixels to connect a patch.
 gparam.inpainting_retrieve = 'copy'; % Average connected patches or copy the strongest.
 gparam.inpainting_compose = 'overwrite'; % Keep known pixels or overwrite everything.
+gparam.optim_prior = 'thikonov'; % Global optimization constraint : thikonov or tv.
+gparam.optim_maxit = 100; % Maximum number of iterations.
+gparam.optim_sigma = 0; % Noise level.
 
 plot = false;
 savefig = false;
@@ -32,6 +39,7 @@ bordersize = (imsize-holesize)/2;
 xyrange = bordersize+1:imsize-bordersize;
 obsimg = img;
 obsimg(xyrange,xyrange) = -1e3;
+clear imtype holesize bordersize xyrange
 
 %% Patch graph
 % Unknown patches are disconnected.
@@ -52,7 +60,7 @@ param.nnparam.sigma = gparam.sigma;
 % Execution time.
 fprintf('Time to create graph : %f seconds\n', toc);
 
-clear param Nvert Nignored
+clear param
 
 % Visualize a patch : reshape(patches(4380,1:end-2),psize,psize)
 
@@ -173,6 +181,8 @@ end
 % Execution time
 fprintf('Iterative inpainting : %f\n', toc);
 
+clear unknowns news currents vertex first knowns
+
 %% Visualize priorities
 
 if plot
@@ -190,14 +200,13 @@ priorities = -1-priorities;
 % Now we inpaint again the image using the created non-local graph.
 
 init_unlocbox();
+verbose = 1;
 
-% Observed signal (image)
+% Observed signal (image).
 M = reshape(obsimg>=0, [], 1);
 y = M .* reshape(img, [], 1);
 
-verbose = 1;
-sigma = 0; % noise level
-
+% Data term.
 % fdata.grad = @(x) 2*M.*(M.*x-y);
 % fdata.eval = @(x) norm(M.*x-y)^2;
 param_b2.verbose = verbose -1;
@@ -205,29 +214,42 @@ param_b2.y = y;
 param_b2.A = @(x) M.*x;
 param_b2.At = @(x) M.*x;
 param_b2.tight = 1;
-param_b2.epsilon = sigma*sqrt(sum(M(:)));
+param_b2.epsilon = gparam.optim_sigma*sqrt(sum(M(:)));
 fdata.prox = @(x,T) proj_b2(x,T,param_b2);
 fdata.eval = @(x) eps;
 
-% Thikonov prior
-paramtik.verbose = verbose -1;
-ftik.prox = @(x,T) gsp_prox_tik(x,T,G,paramtik);
-ftik.eval = @(x) gsp_norm_tik(G,x);
+% Prior.
+param_prior.verbose = verbose-1;
+switch(gparam.optim_prior)
+    
+    % Thikonov prior.
+    case 'thikonov'
+        fprior.prox = @(x,T) gsp_prox_tik(x,T,G,param_prior);
+        fprior.eval = @(x) gsp_norm_tik(G,x);
+    
+    % TV prior.
+    case 'tv'
+        G = gsp_adj2vec(G);
+        G = gsp_estimate_lmax(G);
+        fprior.prox = @(x,T) gsp_prox_tv(x,T,G,param_prior);
+        fprior.eval = @(x) gsp_norm_tv(G,x);
+end
 
-% Solve the convex optimization problem
+% Solve the convex optimization problem.
 param_solver.verbose = verbose;
 param_solver.tol = 1e-7;
-param_solver.maxit = 200;
-
+param_solver.maxit = gparam.optim_maxit;
 tic;
-[soltik, infotik] = douglas_rachford(y,ftik,fdata,param_solver);
+[sol, info] = douglas_rachford(y,fprior,fdata,param_solver);
 
-% Execution time
-fprintf('Thikonov : %f (%d iterations)\n', toc, infotik.iter);
+% Execution time.
+fprintf('Global optimization : %f (%d iterations)\n', toc, info.iter);
+
+clear verbose M fdata fprior param_b2 param_prior param_solver info
 
 %% Results
 
-% Images
+% Images.
 subplot(2,2,1);
 imshow(img);
 title('Original');
@@ -238,11 +260,11 @@ subplot(2,2,3);
 imshow(reshape(pixels,imsize,imsize));
 title('Inpainted');
 subplot(2,2,4);
-imshow(reshape(soltik,imsize,imsize));
-title('Globally optimized (Thikonov)');
+imshow(reshape(sol,imsize,imsize));
+title(['Globally optimized (',gparam.optim_prior,')']);
 saveas(gcf,'inpainting_last.png');
 
-% Reconstruction errors
+% Reconstruction errors.
 fprintf('Observed image error (L2-norm) : %f\n', norm(reshape(img,[],1) - y));
 fprintf('Inpainting reconstruction error : %f\n', norm(reshape(img,[],1) - pixels));
-fprintf('Thikonov reconstruction error : %f\n', norm(reshape(img,[],1) - soltik));
+fprintf('Globally optimized reconstruction error : %f\n', norm(reshape(img,[],1) - sol));

@@ -47,18 +47,18 @@ elseif strcmp(imtype, 'lena1')
     vertices = [0,0];
 elseif strcmp(imtype, 'lena2')
     imsize = 100;
-    img = imread('lena.png');
+    img = imread('../lena.png');
     img = imcrop(img, [100,100,imsize-1,imsize-1]);
     img = double(img) / 255;
     vertices = [-40,40 ; -26,-20 ; -6,-3 ; 10,1 ; 16,7];
 elseif strcmp(imtype, 'lena3')
     imsize = 100;
-    img = imread('lena.png');
+    img = imread('../lena.png');
     img = imcrop(img, [70,100,imsize-1,imsize-1]);
     img = double(img) / 255;
     vertices = [0,0];
 elseif strcmp(imtype, 'lenafull')
-    img = imread('lena.png');
+    img = imread('../lena.png');
     img = double(img) / 255;
     vertices = [0,0];
 else
