@@ -1,4 +1,4 @@
-function [ priorities, diffused ] = giin_priorities( vertices, priorities, G, gparam )
+function [ Pstructure, diffused ] = giin_priorities( vertices, Pstructure, G, gparam )
 %GIIN_PRIORITIES Compute the priority of a list of vertices.
 %   Receive a list of vertices, update the priority signal.
 
@@ -18,8 +18,8 @@ deltas = deltas(:,vertices);
 % Graph filtering.
 diffused = gsp_filter_analysis(G, Hk, deltas);
 
-% Update priority signal.
-priorities(vertices) = sum(diffused > gparam.priority_threshold, 1);
+% Update priority signal. Normalized in [0,1].
+Pstructure(vertices) = sum(diffused > gparam.priority_threshold, 1);% / G.N^2;
 
 % Execution time.
 % fprintf('giin_priorities : %f seconds\n', toc);

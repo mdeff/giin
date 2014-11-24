@@ -1,4 +1,4 @@
-function [ pixels, patches, impacted_patches ] = giin_inpaint( vertex, G, pixels, patches, gparam )
+function [ pixels, patches, Pinformation, impacted_patches ] = giin_inpaint( vertex, G, pixels, patches, Pinformation, gparam )
 %GIIN_INPAINT Inpaint the specified patch and returns the impacted vertices.
 %   Detailed explanation goes here
 
@@ -13,7 +13,7 @@ width = max(G.coords(:,1));
 height = max(G.coords(:,2));
 
 % Pixel vertices contained in a patch.
-patch_pixels = patch_vertices('pixels', gparam.psize, height);
+patch_pixels = giin_patch_vertices('pixels', gparam.psize, height);
 
 impacted_pixels = patch_pixels .* (patches(vertex,1:end-2)<0);
 [~,~,impacted_pixels] = find(impacted_pixels);
@@ -61,41 +61,29 @@ patches(vertex,:) = old .* M + new .* ~M;
 % Update pixel values.
 pixels(vertex+patch_pixels) = patches(vertex,1:end-2).';
 
+% Update pixels information priorities.
+new = Pinformation(vertex,2);
+new = repmat(new, length(patch_pixels), 1);
+old = Pinformation(vertex+patch_pixels,1);
+Pinformation(vertex+patch_pixels,1) = old .* M(1:end-2).' + new .* ~M(1:end-2).';
+
 % Patch vertices affected by a patch.
-patch_patches = patch_vertices('patches', gparam.psize, height);
+patch_patches = giin_patch_vertices('patches', gparam.psize, height);
 
 % Update neighboring (not necessarily impacted) patches.
-dim = gparam.psize^2;
-margin = floor(gparam.psize / 2);
-inpainted = reshape(pixels,height,width);
+% dim = gparam.psize^2;
+% margin = floor(gparam.psize / 2);
+% inpainted = reshape(pixels,height,width);
 for patch = vertex+patch_patches
-    h = mod(patch-1, height) + 1;
-    w = floor((patch-1) / height) + 1;
-    patches(patch, 1:dim) = reshape(inpainted(h-margin:h+margin, w-margin:w+margin), 1, dim);
+%     h = mod(patch-1, height) + 1;
+%     w = floor((patch-1) / height) + 1;
+%     patches(patch, 1:dim) = reshape(inpainted(h-margin:h+margin, w-margin:w+margin), 1, dim);
+    patches(patch,1:end-2) = pixels(patch+patch_pixels);
+    % Update patches information priorities.
+    Pinformation(patch,2) = mean(Pinformation(patch+patch_pixels,1));
 end
 
 % Execution time.
 % fprintf('giin_inpaint : %f seconds\n', toc);
-
-end
-
-function [ vertices ] = patch_vertices( type, psize, height )
-%PATCH_VERTICES Return a list of vertices impacted by a patch. Either the
-%impacted pixels or the impacted patches.
-
-switch(type)
-    case 'pixels'
-        size = psize;
-    case 'patches'
-        size = 2 * psize - 1;
-end
-
-% Pixel vertices contained in a patch.
-vert = -(size-1)/2 : (size-1)/2;
-horiz = vert * height;
-vert = repmat(vert.', 1, size);
-horiz = repmat(horiz, size, 1);
-vertices = horiz + vert;
-vertices = reshape(vertices, 1, size*size);
 
 end

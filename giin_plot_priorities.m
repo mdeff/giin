@@ -1,4 +1,4 @@
-function giin_plot_priorities( vertices, priorities, G, gparam, savefig )
+function giin_plot_priorities( vertices, G, gparam, savefig )
 %GIIN_PLOT_PRIORITIES Visualize how priority is constructed.
 %   Given a list of vertices, show how their priority is constructed.
 
@@ -6,7 +6,8 @@ Nplots = sqrt(length(vertices));
 width = max(G.coords(:,1));
 height = max(G.coords(:,2));
 
-[priorities, diffused] = giin_priorities(vertices, priorities, G, gparam);
+Pstructure = nan(G.N, 1);
+[Pstructure, diffused] = giin_priorities(vertices, Pstructure, G, gparam);
 
 for n = 1:length(vertices)
     vertex = vertices(n);
@@ -26,7 +27,7 @@ for n = 1:length(vertices)
     bin = reshape(bin, height, width);
     imshow(bin);
     title(['Vertex ',num2str(vertex)]);
-    xlabel(['Priority ',num2str(priorities(n))]);
+    xlabel(['Priority ',num2str(Pstructure(vertex))]);
 
     % Hough transform.
     fig3 = figure(103);

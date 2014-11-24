@@ -25,7 +25,7 @@ gparam.optim_prior = 'thikonov'; % Global optimization constraint : thikonov or 
 gparam.optim_maxit = 100; % Maximum number of iterations.
 gparam.optim_sigma = 0; % Noise level.
 
-plot = false;
+plot = true;
 savefig = false;
 
 %% Image
@@ -112,7 +112,16 @@ if sum(unknowns<0)+length(knowns) ~= G.N
     error('Missing vertices !');
 end
 
-priorities = nan(size(pixels));
+% Structure priority.
+Pstructure = nan(G.N, 1);
+
+% Information priority. First column is pixels priority, second is patches.
+Pinformation(:,1) = double(pixels>0);
+Pinformation(:,2) = nan(G.N,1);
+patch_pixels = giin_patch_vertices('pixels', gparam.psize, imsize);
+for patch = find(unknowns<0).'
+    Pinformation(patch,2) = mean(Pinformation(patch+patch_pixels,1));
+end
 
 % currents  : vertices to be inpainted
 % news      : vertices to be connected, i.e. newly considered pixels
@@ -149,17 +158,18 @@ while ~isempty(currents) || first
     G = giin_connect(G, news, knowns, patches, gparam);
 
     % Compute their priorities, i.e. update the priority signal.
-    priorities = giin_priorities(news, priorities, G, gparam);
+    Pstructure = giin_priorities(news, Pstructure, G, gparam);
 
     % TODO: we also need to take into account the data priority, and normalize
     % the two to give them the same weight.
 
-    % Highest priority patch.
-    [~,vertex] = max(priorities);
-    priorities(vertex) = -1-priorities(vertex);
+    % Highest priority patch. Negate the value so that it won't be selected
+    % again while we keep the information ([0,1] --> [-1,-2]).
+    [~,vertex] = max(Pstructure .* Pinformation(:,2));
+    Pstructure(vertex) = -1-Pstructure(vertex);
 
     % Update pixels and patches.
-    [pixels, patches, ~] = giin_inpaint(vertex, G, pixels, patches, gparam);
+    [pixels, patches, Pinformation, ~] = giin_inpaint(vertex, G, pixels, patches, Pinformation, gparam);
 
     % Remove the currently impainted vertex from the lists.
 %     news = news(news~=vertex);
@@ -178,6 +188,9 @@ while ~isempty(currents) || first
     fprintf('Inpainted vertices : %d (%d waiting)\n', length(inpainted), length(currents));
 end
 
+% Restore priorities.
+Pstructure = -1-Pstructure;
+
 % Execution time
 fprintf('Iterative inpainting : %f\n', toc);
 
@@ -186,16 +199,27 @@ clear unknowns news currents vertex first knowns
 %% Visualize priorities
 
 if plot
-    % 2238,4370,3600
+    % Show some vertices of interest.
     vertices = [2238,4370,3493,3589,4380,5703]; %#ok<UNRCH>
-    giin_plot_priorities(vertices, priorities, G, gparam, savefig);
+    giin_plot_priorities(vertices, G, gparam, savefig);
+    
+    % Plot the various priorities.
+    figure();
+    subplot(2,2,1);
+%     imshow(imadjust(reshape(Pstructure,imsize,imsize)));
+    imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
+    title('Structure priority');
+    subplot(2,2,2);
+    imshow(reshape(Pinformation(:,1), imsize, imsize));
+    title('Pixel infomation priority');
+    subplot(2,2,4);
+    imshow(reshape(Pinformation(:,2), imsize, imsize));
+    title('Patch infomation priority');
+    subplot(2,2,3);
+    imshow(reshape(Pstructure .* Pinformation(:,2), imsize, imsize) / max(Pstructure .* Pinformation(:,2)));
+    title('Global priority');
+    colormap(hot);
 end
-
-% Restore priorities.
-priorities = -1-priorities;
-% figure();
-% imshow(imadjust(reshape(priorities,imsize,imsize)));
-% colormap(hot);
 
 %% Global stage by convex optimization
 % Now we inpaint again the image using the created non-local graph.
@@ -251,6 +275,7 @@ clear verbose M fdata fprior param_b2 param_prior param_solver info
 %% Results
 
 % Images.
+figure();
 subplot(2,2,1);
 imshow(img);
 title('Original');
