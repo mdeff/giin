@@ -30,6 +30,10 @@ if any(isnan(Pstructure))
     error('Some pixels have no assigned priority !');
 end
 
+%% Save results
+
+save(['results/priority_',imtype], 'G', 'Pstructure', 'gparam');
+
 %% Visualize priorities
 
 % Show some vertices of interest.

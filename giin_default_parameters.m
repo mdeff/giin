@@ -11,7 +11,7 @@ gparam.connect.max_unknown_pixels = 2*gparam.graph.psize; % Maximum number of un
 
 gparam.priority.threshold = 1e-3; % Threshold when creating priority from diffused energy.
 gparam.priority.heat_scale = 500; % Depends on sigma. 1000 for lena
-gparam.priority.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes).
+gparam.priority.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes). Linear time for gsp_cheby_op.
 
 gparam.inpainting.psize = 5; % Size of the patch being inpainted. Could be smaller than the comparizon patch.
 gparam.inpainting.retrieve = 'copy'; % Average connected patches (average) or copy the strongest (copy).
