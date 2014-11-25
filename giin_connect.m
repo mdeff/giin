@@ -16,18 +16,26 @@ for ii = 1:length(vertices)
     % Custom-made comparison mask.
     M = patches(vertex,:)>=0;
     
+    % Find the K closest patches. One at a time because we need a custom
+    % comparison function or a custom dictionary.
+    dict = repmat(M,size(knowns)) .* patches(knowns,:);
+    [idx,dist] = knnsearch(dict, M.*patches(vertex,:), 'K',knn, 'Distance','euclidean');
+    neighbors = knowns(idx);
+    
     % Find the K closest patches.
-    e = nan(Gold.N, 1);
-    for known = knowns.'
-        e(known) = norm(M.*patches(vertex,:) - M.*patches(known,:), 2);
-    end
-    [~,idx] = sort(e);
+%     e = nan(Gold.N, 1);
+%     for known = knowns.'
+%         e(known) = norm(M.*patches(vertex,:) - M.*patches(known,:), 2);
+%     end
+%     [~,idx] = sort(e);
+%     neighbors = idx(1:knn);
+%     dist = e(neighbors);
     
     % Fill the 3-col values with [i, j, exp(-d(i,j)^2 / sigma)]
     start = (ii-1)*knn+1;
     spi(start:start+knn-1) = vertex;
-    spj(start:start+knn-1) = idx(1:knn);
-    spv(start:start+knn-1) = exp(-e(idx(1:knn)).^2 / gparam.graph.sigma);
+    spj(start:start+knn-1) = neighbors;
+    spv(start:start+knn-1) = exp(-dist.^2 / gparam.graph.sigma);
 end
 
 % The new connections.

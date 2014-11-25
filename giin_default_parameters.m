@@ -2,7 +2,7 @@ function [ gparam ] = giin_default_parameters( )
 %GIIN_DEFAULT_PARAMETERS Default algorithm parameters
 %  Suitable defaults for most use cases.
 
-gparam.graph.psize = 5; % Patch size.
+gparam.graph.psize = 7; % Patch size.
 gparam.graph.knn = 10; % Patch graph minimum number of connections (KNN).
 gparam.graph.sigma = 1e-1; % Variance of the distance kernel. We want the graph weights to be well spread.
 gparam.graph.loc = 0.001; % Importance of local information. (default 0.001, 0.1)

@@ -17,7 +17,7 @@ savefig = false;
 %% Inpainting algorithm
 
 gparam = giin_default_parameters();
-[img, obsimg, vertices] = giin_image(imtype, imsize, holesize);
+[img, obsimg, imsize, vertices] = giin_image(imtype, imsize, holesize);
 [G, pixels, patches] = giin_patch_graph(obsimg, gparam, plot);
 [G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, plot);
 sol = giin_global(G, obsimg, gparam);
@@ -51,6 +51,8 @@ if plot
     imshow(reshape(Pstructure .* Pinformation(:,2), imsize, imsize) / max(Pstructure .* Pinformation(:,2)));
     title('Global priority');
     colormap(hot);
+    
+    saveas(gcf,'results/priorities.png');
 end
 
 %% Results

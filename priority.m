@@ -4,16 +4,16 @@ close all; clear; clc;
 gsp_start();
 
 % Experiment parameters.
-imtype = 'lena2'; % Type of line.
+imtype = 'lenafull'; % Type of line.
 imsize = 100; % Image size.
-plot = true;
-savefig = true;
+plot = false;
+savefig = false;
 
 gparam = giin_default_parameters();
 
 %% Image and graph
 
-[img, ~, vertices] = giin_image(imtype, imsize);
+[img, ~, imsize, vertices] = giin_image(imtype, imsize);
 G = giin_patch_graph(img, gparam, plot);
 
 %% Priorities
