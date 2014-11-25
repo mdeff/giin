@@ -11,7 +11,7 @@ gsp_start();
 imtype = 'lena3'; % Type of line.
 imsize = 100; % Image size.
 holesize = 20; % Hole size.
-plot = true;
+plot = false;
 savefig = false;
 
 %% Inpainting algorithm

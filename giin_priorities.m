@@ -16,8 +16,9 @@ Hk = gsp_design_heat(G, gparam.priority.heat_scale);
 % gsp_plot_filter(G, Wk);
 
 % Create the Kronecker deltas.
-deltas = eye(G.N);
-deltas = deltas(:,vertices);
+% deltas = eye(G.N);
+% deltas = deltas(:,vertices);
+deltas = sparse(vertices, 1:length(vertices), ones(size(vertices)), G.N, length(vertices));
 % gsp_plot_signal(G, deltas(:,1));
 
 % Graph filtering.
