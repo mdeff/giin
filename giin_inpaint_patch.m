@@ -39,21 +39,34 @@ switch(gparam.inpainting.retrieve)
     case 'copy'
         [~,strongest] = max(G.W(vertex,:));
         new = patches(strongest,:);
+    otherwise
+        error('Unknown retrieve mode.');
 end
 
 % Compose the new patch.
 switch(gparam.inpainting.compose)
     % Keep valid pixels, only inpaint unknown ones.
     case 'mixed'
-        M = patches(vertex,:)>=0;
+        M1 = patches(vertex,:)<0;
     % Inpaint the entire patch, i.e. replace known pixels.
     case 'overwrite'
-        M = [zeros(1,gparam.graph.psize^2), ones(1,2)];
+        M1 = [true(1,gparam.graph.psize^2), false(1,2)];
+    otherwise
+        error('Unknown compose mode.');
 end
+
+% Restrict the inpainted patch size to allow to look around it when
+% searching for neighbors.
+M2 = false(gparam.graph.psize);
+bordersize = (gparam.graph.psize - gparam.inpainting.psize) / 2;
+xyrange = bordersize+1 : gparam.graph.psize-bordersize;
+M2(xyrange,xyrange) = true;
+M2 = [M2(:).', false, false];
 
 % Inpaint the patch.
 old = patches(vertex,:);
-patches(vertex,:) = old .* M + new .* ~M;
+M = M1 & M2;
+patches(vertex,:) = new .* M + old .* ~M;
 
 %% Update the signals.
 

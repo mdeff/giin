@@ -38,6 +38,9 @@ switch(gparam.optim.prior)
         G = gsp_estimate_lmax(G);
         fprior.prox = @(x,T) gsp_prox_tv(x,T,G,param_prior);
         fprior.eval = @(x) gsp_norm_tv(G,x);
+        
+    otherwise
+        error('Unknown prior.');
 end
 
 % Solve the convex optimization problem.
