@@ -51,7 +51,9 @@ end
 Pstructure = nan(G.N, 1);
 
 % Information priority. First column is pixels priority, second is patches.
-Pinformation(:,1) = double(pixels>0);
+% We don't want it to be zero to preserve sign when multiplied with Pstructure.
+Pinformation(pixels>=0,1) = 1;
+Pinformation(pixels<0,1) = 1e-4;
 Pinformation(:,2) = nan(G.N,1);
 patch_pixels = giin_patch_vertices('pixels', gparam.graph.psize, max(G.coords(:,2)));
 for patch = find(unknowns<0).'
@@ -103,6 +105,10 @@ while ~isempty(currents) || first
     [~,vertex] = max(Pstructure .* Pinformation(:,2));
     Pstructure(vertex) = -1-Pstructure(vertex);
 
+    if ~ismember(vertex, currents)
+        error('This vertex is not in the list of vertices to be inpainted !');
+    end
+    
     % Update pixels and patches.
     [pixels, patches, Pinformation, ~] = giin_inpaint_patch(vertex, G, pixels, patches, Pinformation, gparam);
 

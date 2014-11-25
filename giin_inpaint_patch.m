@@ -77,7 +77,7 @@ pixels(vertex+patch_pixels) = patches(vertex,1:end-2).';
 new = Pinformation(vertex,2);
 new = repmat(new, length(patch_pixels), 1);
 old = Pinformation(vertex+patch_pixels,1);
-Pinformation(vertex+patch_pixels,1) = old .* M(1:end-2).' + new .* ~M(1:end-2).';
+Pinformation(vertex+patch_pixels,1) = new .* M(1:end-2).' + old .* ~M(1:end-2).';
 
 % Patch vertices affected by a patch.
 patch_patches = giin_patch_vertices('patches', gparam.graph.psize, height);
