@@ -1,4 +1,4 @@
-function [ Gnew ] = giin_connect( Gold, vertices, knowns, patches, gparam )
+function [ G ] = giin_connect( G, vertices, knowns, patches, gparam )
 %GIIN_CONNECT Connect patches in a graph
 %   Create a new graph given a list of patches to insert in the old one.
 
@@ -39,18 +39,19 @@ for ii = 1:length(vertices)
 end
 
 % The new connections.
-W = sparse(spi, spj, spv, size(Gold.W,1), size(Gold.W,2));
+W = sparse(spi, spj, spv, size(G.W,1), size(G.W,2));
 
 % Do not symmetrize the graph because we don't have tested the known
 % patches agains the considered : would be unfair.
 W = (W + W.') / 2;
 
-% G.W = G.W + W;
-% G = gsp_graph_default_parameters(G);
-% G = gsp_create_laplacian(G); % Laplacian was not updated
-Gnew = gsp_graph(Gold.W+W, Gold.coords, Gold.plotting.limits);
+Ne = G.Ne;
 
-if Gold.Ne + nnz(W) ~= Gnew.Ne
+G.W = G.W + W;
+G = gsp_graph_default_parameters(G);
+% Gnew = gsp_graph(Gold.W+W, Gold.coords, Gold.plotting.limits);
+
+if Ne + nnz(W) ~= G.Ne
     error('Some of the new connections were already there !');
 end
 

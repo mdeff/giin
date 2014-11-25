@@ -5,7 +5,8 @@ function [ Pstructure, diffused ] = giin_priorities( vertices, Pstructure, G, gp
 tstart = tic;
 
 % Estimate the maximum eigenvalue of the Lapalacian (for filters).
-G = gsp_estimate_lmax(G);
+% Done only once as it does not change much when adding new vertices.
+% G = gsp_estimate_lmax(G);
 
 % Heat kernel.
 Hk = gsp_design_heat(G, gparam.priority.heat_scale);
