@@ -31,29 +31,27 @@ end
 
 %% Visualize priorities
 
-if plot
-    % Show some vertices of interest.
-    giin_plot_priorities(vertices, G, gparam, savefig);
-    
-    % Plot the various priorities.
-    figure();
-    subplot(2,2,1);
-%     imshow(imadjust(reshape(Pstructure,imsize,imsize)));
-    imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
-    title('Structure priority');
-    subplot(2,2,2);
-    imshow(reshape(Pinformation(:,1), imsize, imsize));
-    title('Pixel infomation priority');
-    subplot(2,2,4);
-    imshow(reshape(Pinformation(:,2), imsize, imsize));
-    title('Patch infomation priority');
-    subplot(2,2,3);
-    imshow(reshape(Pstructure .* Pinformation(:,2), imsize, imsize) / max(Pstructure .* Pinformation(:,2)));
-    title('Global priority');
-    colormap(hot);
-    
-    saveas(gcf,'results/priorities.png');
-end
+% Show some vertices of interest.
+giin_plot_priorities(vertices, G, gparam, savefig);
+
+% Plot the various priorities.
+figure();
+subplot(2,2,1);
+% imshow(imadjust(reshape(Pstructure,imsize,imsize)));
+imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
+title('Structure priority');
+subplot(2,2,2);
+imshow(reshape(Pinformation(:,1), imsize, imsize));
+title('Pixel infomation priority');
+subplot(2,2,4);
+imshow(reshape(Pinformation(:,2), imsize, imsize));
+title('Patch infomation priority');
+subplot(2,2,3);
+imshow(reshape(Pstructure .* Pinformation(:,2), imsize, imsize) / max(Pstructure .* Pinformation(:,2)));
+title('Global priority');
+colormap(hot);
+
+saveas(gcf,'results/priorities.png');
 
 %% Results
 
