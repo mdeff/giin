@@ -21,7 +21,9 @@ param.nnparam.sigma = gparam.graph.sigma;
 
 % Estimate the maximum eigenvalue of the Lapalacian (for filters).
 % Done only once as it does not change much when adding new vertices.
-G = gsp_estimate_lmax(G);
+% G = gsp_estimate_lmax(G);
+% The estimate should always be greater than the real value.
+G.lmax = 2*max(G.d);
 
 % Execution time.
 fprintf('Time to create graph : %f seconds\n', toc(tstart));
