@@ -31,7 +31,7 @@ contrast = 0.8;
 switch(imtype)
     case 'horizontal'
         img(imsize/2+1:end,:) = contrast;
-        vertices = [0,0];
+        vertices = [];
     case 'vertical'
         img(:,imsize/2+1:end) = contrast;
         vertices = [-6,-3 ; -2,-6 ; 1,2 ; 6,-5];
@@ -49,7 +49,7 @@ switch(imtype)
         img = imread('lena.png');
         img = imcrop(img, [120,100,imsize-1,imsize-1]);
         img = double(img) / 255;
-        vertices = [0,0];
+        vertices = [];
     case 'lena2'
         imsize = 100;
         img = imread('../lena.png');
@@ -62,17 +62,25 @@ switch(imtype)
         img = imcrop(img, [70,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [-40,40 ; 5,-20 ; -6,-3 ; 10,1 ; 16,7];
+    case 'lena4'
+        imsize = 200;
+        img = imread('../lena.png');
+        img = imcrop(img, [200,1,imsize-1,imsize-1]);
+        img = double(img) / 255;
+        vertices = [];
     case 'lenafull'
         img = imread('../lena.png');
         img = double(img) / 255;
-        vertices = [0,0];
+        vertices = [];
 	otherwise
         error('Unknown image type.');
 end
 
-vertices = vertices + floor(imsize/2);
-vertices = (vertices(:,1)-1)*imsize + vertices(:,2);
-vertices = vertices.';
+if numel(vertices) > 0
+    vertices = vertices + floor(imsize/2);
+    vertices = (vertices(:,1)-1)*imsize + vertices(:,2);
+    vertices = vertices.';
+end
 
 if any(vertices<0)
     error('Image size too small to show the vertices of interest.');

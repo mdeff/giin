@@ -4,7 +4,7 @@ close all; clear; clc;
 gsp_start();
 
 % Experiment parameters.
-imtype = 'lenafull'; % Type of line.
+imtype = 'lena4'; % Type of line.
 imsize = 100; % Image size.
 plot = false;
 savefig = false;

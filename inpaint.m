@@ -8,9 +8,9 @@ close all; clear; clc;
 gsp_start();
 
 % Experiment parameters.
-imtype = 'lena3'; % Type of line.
-imsize = 100; % Image size.
-holesize = 20; % Hole size.
+imtype = 'lena4'; % Type of line.
+imsize = 200; % Image size.
+holesize = 50; % Hole size.
 plot = false;
 savefig = false;
 
@@ -18,7 +18,7 @@ savefig = false;
 
 gparam = giin_default_parameters();
 [img, obsimg, imsize, vertices] = giin_image(imtype, imsize, holesize);
-[G, pixels, patches] = giin_patch_graph(obsimg, gparam, plot);
+[G, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
 [G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, plot);
 sol = giin_global(G, obsimg, gparam);
 
