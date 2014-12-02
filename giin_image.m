@@ -1,4 +1,4 @@
-function [ img, obsimg, imsize, vertices ] = giin_image( imtype, imsize, holesize )
+function [ img, obsimg, imsize, vertices ] = giin_image( imtype, hole )
 %GIIN_IMAGE Images to inpaint.
 %   Usage :
 %       img = giin_image('horizontal', 5); 
@@ -17,14 +17,11 @@ function [ img, obsimg, imsize, vertices ] = giin_image( imtype, imsize, holesiz
 % Author: Michaël Defferrard
 % Date: November 2014
 
-if nargin < 3
-    holesize = 0;
-end
-
 if nargin < 2
-    imsize = 30;
+    hole = false;
 end
 
+imsize = 30;
 img = zeros(imsize);
 contrast = 0.8;
 
@@ -86,16 +83,21 @@ if any(vertices<0)
     error('Image size too small to show the vertices of interest.');
 end
 
-% Corner markers. Can break KNN 
-% if strcmp(imtype, 'horizontal') || strcmp(imtype, 'vertical')
-%     margin = floor(psize / 2);
-%     img(1+margin,1+margin) = 0.2;
-%     img(imsize-margin,imsize-margin) = 1.0;
-% end
+% Corner markers (could break KNN, it was a bug).
+if strcmp(imtype, 'horizontal') || strcmp(imtype, 'vertical')
+    margin = floor(psize / 2);
+    img(1+margin,1+margin) = 0.2;
+    img(imsize-margin,imsize-margin) = 1.0;
+end
 
 % Unknown pixels are negative (known ones are in [0,1]). Negative enough
 % such that they don't connect to anything else than other unknown patches.
-bordersize = (imsize-holesize)/2;
+if hole
+    holesize = imsize / 4;
+else
+    holesize = 0;
+end
+bordersize = round((imsize-holesize)/2);
 xyrange = bordersize+1 : imsize-bordersize;
 obsimg = img;
 obsimg(xyrange,xyrange) = -1e3;

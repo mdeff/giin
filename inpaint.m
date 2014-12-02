@@ -8,16 +8,14 @@ close all; clear; clc;
 gsp_start();
 
 % Experiment parameters.
-imtype = 'lena4'; % Type of line.
-imsize = 200; % Image size.
-holesize = 50; % Hole size.
-plot = false;
+imtype = 'lena3';
+plot = true;
 savefig = false;
 
 %% Inpainting algorithm
 
 gparam = giin_default_parameters();
-[img, obsimg, imsize, vertices] = giin_image(imtype, imsize, holesize);
+[img, obsimg, imsize, vertices] = giin_image(imtype, true);
 [G, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
 [G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, plot);
 sol = giin_global(G, obsimg, gparam);
@@ -37,8 +35,8 @@ giin_plot_priorities(vertices, G, gparam, savefig);
 % Plot the various priorities.
 figure();
 subplot(2,2,1);
-% imshow(imadjust(reshape(Pstructure,imsize,imsize)));
-imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
+imshow(imadjust(reshape(Pstructure,imsize,imsize)));
+% imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
 title('Structure priority');
 subplot(2,2,2);
 imshow(reshape(Pinformation(:,1), imsize, imsize));
@@ -47,7 +45,8 @@ subplot(2,2,4);
 imshow(reshape(Pinformation(:,2), imsize, imsize));
 title('Patch infomation priority');
 subplot(2,2,3);
-imshow(reshape(Pstructure .* Pinformation(:,2), imsize, imsize) / max(Pstructure .* Pinformation(:,2)));
+imshow(imadjust(reshape(Pstructure .* Pinformation(:,2),imsize,imsize)));
+% imshow(reshape(Pstructure .* Pinformation(:,2), imsize, imsize) / max(Pstructure .* Pinformation(:,2)));
 title('Global priority');
 colormap(hot);
 

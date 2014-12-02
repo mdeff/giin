@@ -18,24 +18,27 @@ for n = 1:length(vertices)
     clear param;
     param.vertex_highlight = vertex;
     gsp_plot_signal(G, diffused(:,n), param);
-    title(['Vertex ',num2str(vertex)]);
-
-    % Binary edge image.
-    fig2 = figure(101);
-    subplot(floor(Nplots), ceil(Nplots), find(vertex==vertices));
-    bin = diffused(:,n) > gparam.priority.threshold;
-    bin = reshape(bin, height, width);
-    imshow(bin);
-    title(['Vertex ',num2str(vertex)]);
+    title([num2str(vertex),' (',num2str(Pstructure(vertex)),')']);
     xlabel(['Priority ',num2str(Pstructure(vertex))]);
 
-    % Hough transform.
-    fig3 = figure(103);
-    subplot(floor(Nplots), ceil(Nplots), find(vertex==vertices));
-    H = hough(bin);
-    imshow(imadjust(mat2gray(H)));
-    title(['Vertex ',num2str(vertex)]);
-    colormap(hot);
+    if strcmp(gparam.priority.type, 'threshold')
+        % Binary edge image.
+        fig2 = figure(101);
+        subplot(floor(Nplots), ceil(Nplots), find(vertex==vertices));
+        bin = diffused(:,n) > gparam.priority.threshold;
+        bin = reshape(bin, height, width);
+        imshow(bin);
+        title(['Vertex ',num2str(vertex)]);
+        xlabel(['Priority ',num2str(Pstructure(vertex))]);
+
+        % Hough transform.
+        fig3 = figure(103);
+        subplot(floor(Nplots), ceil(Nplots), find(vertex==vertices));
+        H = hough(bin);
+        imshow(imadjust(mat2gray(H)));
+        title(['Vertex ',num2str(vertex)]);
+        colormap(hot);
+    end
 end
 
 if savefig

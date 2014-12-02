@@ -4,8 +4,7 @@ close all; clear; clc;
 gsp_start();
 
 % Experiment parameters.
-imtype = 'lena4'; % Type of line.
-imsize = 100; % Image size.
+imtype = 'lenafull';
 plot = false;
 savefig = false;
 
@@ -13,7 +12,7 @@ gparam = giin_default_parameters();
 
 %% Image and graph
 
-[img, ~, imsize, vertices] = giin_image(imtype, imsize);
+[img, ~, imsize, vertices] = giin_image(imtype);
 G = giin_patch_graph(img, gparam, plot);
 
 %% Priorities
@@ -45,7 +44,8 @@ subplot(1,2,1);
 imshow(img);
 title('Original image');
 subplot(1,2,2);
-imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
+imshow(imadjust(reshape(Pstructure,imsize,imsize)));
+% imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
 title('Structure priority');
 % colormap(hot);
 saveas(gcf,'results/priority.png');

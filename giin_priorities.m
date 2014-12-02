@@ -30,9 +30,23 @@ diffused = gsp_filter_analysis(G, Hk, deltas, param);
 % imshow(f1_img);
 % imagesc(f1_img);
 
-% Update priority signal. Normalized in [0,1].
-Pstructure(vertices) = sum(diffused > gparam.priority.threshold, 1);% / G.N^2;
-% bin = diffused > max(diffused(:)) / 10;
+% Update priority signal. Not normalized in [0,1].
+switch(gparam.priority.type)
+    
+    case 'threshold'
+        Pstructure(vertices) = sum(diffused > gparam.priority.threshold, 1);% / G.N^2;
+        % bin = diffused > max(diffused(:)) / 10;
+
+    % Sparsity feature.
+    case 'sparsity'
+        % sigma(i) = ||T_ig||_1 / || T_ig||_2 = C / || T_ig||_2
+        % ||T_ig||_1 = sum(abs(diffused), 1) = 1, i.e. energy is conserved
+        % ||T_ig||_2 = sum(diffused.^2, 1)
+        Pstructure(vertices) = sum(diffused.^2, 1);
+        
+    otherwise
+        error('Unknown priority type.');
+end
 
 % Execution time.
 % fprintf('giin_priorities : %f seconds\n', toc(tstart));
