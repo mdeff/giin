@@ -16,39 +16,48 @@ gparam = giin_default_parameters();
 
 Gperfect = giin_patch_graph(img, gparam, false);
 
+%% Disconnected graph
+
+[Gdisc, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
+
 %% Reconstructed graph
 
-[Grec, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
-Grec = giin_inpaint(Grec, pixels, patches, gparam, plot);
+Grec = giin_inpaint(Gdisc, pixels, patches, gparam, plot);
 
 %% Dumb graph
 
-[Gdumb, ~, patches] = giin_patch_graph(obsimg, gparam, false);
+W = Gdisc.W;
 
 % Connect the unconnected vertices in a grid.
+weight = 0.5;
 for k = 1:size(patches,1)
     if any(patches(k,:) < 0)
-        Gdumb.W(k,k+1) = 1;      % bottom
-        Gdumb.W(k,k-1) = 1;      % top
-        Gdumb.W(k,k+imsize) = 1; % right
-        Gdumb.W(k,k-imsize) = 1; % left
+        W(k,k+1) = weight;      % bottom
+        W(k,k-1) = weight;      % top
+        W(k,k+imsize) = weight; % right
+        W(k,k-imsize) = weight; % left
     end
 end
 
 % Symmetrize the weights.
-Gdumb.W = (Gdumb.W + Gdumb.W.') / 2;
+W = (W + W.') / 2;
+
+% Construct the graph object.
+Gdumb = gsp_graph(W, Gdisc.coords, Gdisc.plotting.limits);
 
 %% Analysis
 
 % Regularity measure : x L x^T
 regPerfect = img(:).' * Gperfect.L * img(:);
+regDisc = img(:).' * Gdisc.L * img(:);
 regRec = img(:).' * Grec.L * img(:);
 regDumb = img(:).' * Gdumb.L * img(:);
 
-fprintf('Perfect graph : %f\n', regPerfect);
-fprintf('Reconstructed graph : %f\n', regRec);
-fprintf('Dumb graph : %f\n', regDumb);
+titles = {sprintf('Perfect graph : %f',regPerfect), ...
+    sprintf('Disconnected graph : %f',regDisc), ...
+    sprintf('Reconstructed graph : %f',regRec), ...
+    sprintf('Dumb graph : %f',regDumb)};
 
-%% Graphs visualization
-
-giin_plot_signal(Gperfect, obsimg(:), true)
+for str = titles
+    disp(str{1})
+end
