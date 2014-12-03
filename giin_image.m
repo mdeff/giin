@@ -93,7 +93,7 @@ end
 % Unknown pixels are negative (known ones are in [0,1]). Negative enough
 % such that they don't connect to anything else than other unknown patches.
 if hole
-    holesize = imsize / 4;
+    holesize = round(imsize / 4);
 else
     holesize = 0;
 end

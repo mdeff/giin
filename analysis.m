@@ -61,3 +61,44 @@ titles = {sprintf('Perfect graph : %f',regPerfect), ...
 for str = titles
     disp(str{1})
 end
+
+%% Graphs visualization
+% Show the connections around the center of the graph.
+
+% Vertex numbers.
+vertices = 1:imsize^2;
+vertices = reshape(vertices,imsize,imsize);
+
+% Vertex numbers of interest.
+holesize = round(imsize / 4);
+vizsize = holesize + 10;
+xyrange = floor((imsize-vizsize)/2)+1 : imsize-ceil((imsize-vizsize)/2);
+vertices = vertices(xyrange,xyrange);
+vertices = vertices(:);
+
+% New coordinates.
+% coords = Gdumb.coords(vertices,:);
+coords = zeros(vizsize^2, 2);  % gsp_plot_signal takes [x,y]
+coords(:,2) = repmat((vizsize:-1:1).', vizsize, 1);
+coords(:,1) = reshape(repmat((1:+1:vizsize), vizsize, 1), [], 1);
+
+% Reduced signal.
+sig = obsimg(:);
+sig = sig(vertices);
+
+graphs = {Gperfect, Gdisc, Grec, Gdumb};
+
+fig = figure();
+for k = 1:4
+    G = graphs{k};
+    
+    % Reduce the graph.
+    W = G.W(vertices,vertices);
+    Gviz = gsp_graph(W, coords, [1,vizsize,1,vizsize]);
+
+    % Plot the connections.
+    subplot(2,2,k);
+    giin_plot_signal(Gviz, sig, true);
+    title(titles{k});
+end
+% saveas(fig,'results/graphs.png');

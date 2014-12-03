@@ -5,12 +5,11 @@ if nargin < 3
     show_edges = false;
 end
 
-% Signal graph.
-fig = figure();
+% fig = figure();
 
 % Any negative value is a missing pixel --> red.
 cmap = [1,0,0;gray];
-colormap(fig, cmap);
+colormap(cmap); % colormap(fig, cmap);
 param.climits = [-1/(length(cmap)-1),1];
 
 param.colorbar = 0;
