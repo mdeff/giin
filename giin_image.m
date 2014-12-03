@@ -97,8 +97,7 @@ if hole
 else
     holesize = 0;
 end
-bordersize = round((imsize-holesize)/2);
-xyrange = bordersize+1 : imsize-bordersize;
+xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
 obsimg = img;
 obsimg(xyrange,xyrange) = -1e3;
 
