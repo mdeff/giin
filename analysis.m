@@ -14,24 +14,24 @@ gparam = giin_default_parameters();
 
 %% Perfect graph
 
-Gperfect = giin_patch_graph(img, gparam, false);
+[Gperfect, pixels, patches]  = giin_patch_graph(img, gparam, false);
 
 %% Disconnected graph
 
-[Gdisc, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
+[Gdisc, obspixels, obspatches] = giin_patch_graph(obsimg, gparam, false);
 
 %% Reconstructed graph
 
-Grec = giin_inpaint(Gdisc, pixels, patches, gparam, plot);
+Grec = giin_inpaint(Gdisc, obspixels, obspatches, gparam, plot);
 
 %% Dumb graph
 
 W = Gdisc.W;
 
 % Connect the unconnected vertices in a grid.
-weight = 0.5;
-for k = 1:size(patches,1)
-    if any(patches(k,:) < 0)
+weight = 1;  % Has very limited impact.
+for k = 1:size(obspatches,1)
+    if any(obspatches(k,:) < 0)
         W(k,k+1) = weight;      % bottom
         W(k,k-1) = weight;      % top
         W(k,k+imsize) = weight; % right
@@ -45,18 +45,38 @@ W = (W + W.') / 2;
 % Construct the graph object.
 Gdumb = gsp_graph(W, Gdisc.coords, Gdisc.plotting.limits);
 
+% Sanity check : all(all(Gdisc.W==Gdumb.W))
+
 %% Analysis
 
-% Regularity measure : x L x^T
-regPerfect = img(:).' * Gperfect.L * img(:);
-regDisc = img(:).' * Gdisc.L * img(:);
-regRec = img(:).' * Grec.L * img(:);
-regDumb = img(:).' * Gdumb.L * img(:);
+% Nathanaël example :
+% N = 500;
+% X = rand(N,25); % 25 = 5*5 pixels
+% G = gsp_sensor(N);
+% G = gsp_create_laplacian( G,'normalized' );
+% sum(gsp_norm_tik(G,X))
 
-titles = {sprintf('Perfect graph : %f',regPerfect), ...
-    sprintf('Disconnected graph : %f',regDisc), ...
-    sprintf('Reconstructed graph : %f',regRec), ...
-    sprintf('Dumb graph : %f',regDumb)};
+% Mutli-dimensional signal : sum of the individual norms.
+% sum(gsp_norm_tik(G,X))
+% sum(sum(X .* (G.L* X) ))
+% reg=0; for k=1:size(X,2), reg=reg + X(:,k).'*G.L*X(:,k); end; reg
+
+% Normalize Laplacians.
+graphs = {Gperfect, Gdisc, Grec, Gdumb};
+graphs = gsp_create_laplacian( graphs,'normalized' );
+
+% Regularity measure : x L x^T
+regularity = zeros(length(graphs),2);
+for k = 1:length(graphs)
+    regularity(k,1) = sum(gsp_norm_tik(graphs{k}, pixels));
+    regularity(k,2) = sum(gsp_norm_tik(graphs{k}, patches));
+end
+% Similar : regularity(:,1) ./ regularity(:,2)
+
+titles = {sprintf('Perfect graph : %.2f (%.2d)',regularity(1,1),regularity(1,2)), ...
+    sprintf('Disconnected graph : %.2f (%.2d)',regularity(2,1),regularity(2,2)), ...
+    sprintf('Reconstructed graph : %.2f (%.2d)',regularity(3,1),regularity(3,2)), ...
+    sprintf('Dumb graph : %.2f (%.2d)',regularity(4,1),regularity(4,2))};
 
 for str = titles
     disp(str{1})
@@ -86,10 +106,8 @@ coords(:,1) = reshape(repmat((1:+1:vizsize), vizsize, 1), [], 1);
 sig = obsimg(:);
 sig = sig(vertices);
 
-graphs = {Gperfect, Gdisc, Grec, Gdumb};
-
 fig = figure();
-for k = 1:4
+for k = 1:length(graphs)
     G = graphs{k};
     
     % Reduce the graph.
