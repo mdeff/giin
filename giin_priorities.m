@@ -2,7 +2,7 @@ function [ Pstructure, diffused ] = giin_priorities( vertices, Pstructure, G, gp
 %GIIN_PRIORITIES Compute the priority of a list of vertices.
 %   Receive a list of vertices, update the priority signal.
 
-tstart = tic;
+% tstart = tic;
 
 % Estimate the maximum eigenvalue of the Lapalacian (for filters).
 % Done only once as it does not change much when adding new vertices.
@@ -10,6 +10,7 @@ tstart = tic;
 
 % Heat kernel.
 Hk = gsp_design_heat(G, gparam.priority.heat_scale);
+% figure(1000)
 % gsp_plot_filter(G, Hk);
 
 % Wavelet kernel (not a filterbank). Which frequency ?

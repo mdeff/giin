@@ -4,8 +4,8 @@ function [ gparam ] = giin_default_parameters( )
 
 gparam.graph.psize = 5; % Patch size.
 gparam.graph.knn = 10; % Patch graph minimum number of connections (KNN).
-gparam.graph.sigma = 1e-1; % Variance of the distance kernel. We want the graph weights to be well spread.
-gparam.graph.loc = 0.001; % Importance of local information. (default 0.001, 0.1)
+gparam.graph.sigma = 0.1; % Variance of the distance kernel. We want the graph weights to be well spread.
+gparam.graph.loc = 0.003; % Importance of local information. (default 0.001, 0.1)
 
 gparam.connect.max_unknown_pixels = 2*gparam.graph.psize; % Maximum number of unknown pixels to connect a patch.
 

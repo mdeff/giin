@@ -14,7 +14,7 @@ function [ img, obsimg, imsize, vertices ] = giin_image( imtype, hole )
 %       vertices : some vertices of interest for this image
 %
 
-% Author: Michaël Defferrard
+% Author: Michael Defferrard
 % Date: November 2014
 
 if nargin < 2
@@ -43,31 +43,33 @@ switch(imtype)
         vertices = [-9,-9 ; -2,-2 ; 1,2 ; 6,-3];
     case 'lena1'
         imsize = 30;
-        img = imread('lena.png');
+        img = lena*256;
         img = imcrop(img, [120,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [];
     case 'lena2'
         imsize = 100;
-        img = imread('../lena.png');
+        img = lena*256;
         img = imcrop(img, [100,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [-40,40 ; -26,-20 ; -6,-3 ; 10,1 ; 16,10 ; 20,23];
     case 'lena3'
         imsize = 100;
-        img = imread('../lena.png');
+        img = lena*256;
         img = imcrop(img, [70,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [-40,40 ; 5,-20 ; -6,-3 ; 10,1 ; 16,7];
     case 'lena4'
         imsize = 200;
-        img = imread('../lena.png');
+        img = lena*256;
         img = imcrop(img, [200,1,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [];
     case 'lenafull'
-        img = imread('../lena.png');
-        img = double(img) / 255;
+        img = lena;
+        vertices = [];
+    case 'bungee'
+        [img, mbungee] = extract_bungee();
         vertices = [];
 	otherwise
         error('Unknown image type.');
@@ -97,8 +99,14 @@ if hole
 else
     holesize = 0;
 end
-xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
-obsimg = img;
-obsimg(xyrange,xyrange) = -1e3;
+
+if strcmp(imtype,'bungee')
+    obsimg = img;
+    obsimg(mbungee) = -1e3;
+else
+    xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
+    obsimg = img;
+    obsimg(xyrange,xyrange) = -1e3;
+end
 
 end

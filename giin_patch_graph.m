@@ -13,8 +13,9 @@ tstart = tic;
 param.rho = gparam.graph.loc;
 
 param.patch_size = gparam.graph.psize;
-param.nnparan.center = 0;
+param.nnparam.center = 0;
 param.nnparam.resize = 0;
+param.nnparam.rescale = 0;
 param.nnparam.k = gparam.graph.knn;
 param.nnparam.sigma = gparam.graph.sigma;
 [G, pixels, patches] = gsp_patch_graph(img, param);
