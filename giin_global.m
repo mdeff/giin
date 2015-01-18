@@ -8,8 +8,9 @@ init_unlocbox();
 verbose = 1;
 
 % Observed signal (image).
-M = reshape(img>=0, [], 1);
-y = M .* reshape(img, [], 1);
+M = reshape(img(:,:,1)>=0, [], 1);
+M = repmat(M,1,size(img,3));
+y = M .* reshape(img, [], size(img,3));
 
 % Data term.
 % fdata.grad = @(x) 2*M.*(M.*x-y);
@@ -30,14 +31,14 @@ switch(gparam.optim.prior)
     % Thikonov prior.
     case 'thikonov'
         fprior.prox = @(x,T) gsp_prox_tik(x,T,G,param_prior);
-        fprior.eval = @(x) gsp_norm_tik(G,x);
+        fprior.eval = @(x) sum(gsp_norm_tik(G,x));
     
     % TV prior.
     case 'tv'
         G = gsp_adj2vec(G);
         G = gsp_estimate_lmax(G);
         fprior.prox = @(x,T) gsp_prox_tv(x,T,G,param_prior);
-        fprior.eval = @(x) gsp_norm_tv(G,x);
+        fprior.eval = @(x) sum(gsp_norm_tv(G,x));
         
     otherwise
         error('Unknown prior.');

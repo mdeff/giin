@@ -11,10 +11,13 @@ tic;
 
 height = max(G.coords(:,2));
 
+% For color support
+Nc = size(pixels,2);
+
 % Pixel vertices contained in a patch.
 patch_pixels = giin_patch_vertices('pixels', gparam.graph.psize, height);
 
-impacted_pixels = patch_pixels .* (patches(vertex,1:end-2)<0);
+impacted_pixels = patch_pixels .* (patches(vertex,1:(end-2)/Nc)<0);
 [~,~,impacted_pixels] = find(impacted_pixels);
 
 if isempty(impacted_pixels)
@@ -57,10 +60,12 @@ end
 
 % Restrict the inpainted patch size to allow to look around it when
 % searching for neighbors.
-M2 = false(gparam.graph.psize);
+M3 = false(gparam.graph.psize);
 bordersize = (gparam.graph.psize - gparam.inpainting.psize) / 2;
 xyrange = bordersize+1 : gparam.graph.psize-bordersize;
-M2(xyrange,xyrange) = true;
+M3(xyrange,xyrange) = true;
+M3 = M3(:).';
+M2 = repmat(M3,Nc,1);
 M2 = [M2(:).', false, false];
 
 % Inpaint the patch.
@@ -71,13 +76,17 @@ patches(vertex,:) = new .* M + old .* ~M;
 %% Update the signals.
 
 % Update pixel values.
-pixels(vertex+patch_pixels) = patches(vertex,1:end-2).';
+Npp = gparam.inpainting.psize^2;
+for ii = 1:Nc
+%    pixels(vertex+patch_pixels,ii) = patches(vertex,1:end-2).';
+pixels(vertex+patch_pixels,ii) = patches(vertex,(1:Npp)+(ii-1)*Npp).';
+end
 
 % Update pixels information priorities.
 new = Pinformation(vertex,2);
 new = repmat(new, length(patch_pixels), 1);
 old = Pinformation(vertex+patch_pixels,1);
-Pinformation(vertex+patch_pixels,1) = new .* M(1:end-2).' + old .* ~M(1:end-2).';
+Pinformation(vertex+patch_pixels,1) = new .* M3.' + old .* ~M3.';
 
 % Patch vertices affected by a patch.
 patch_patches = giin_patch_vertices('patches', gparam.graph.psize, height);
@@ -90,7 +99,9 @@ for patch = vertex+patch_patches
 %     h = mod(patch-1, height) + 1;
 %     w = floor((patch-1) / height) + 1;
 %     patches(patch, 1:dim) = reshape(inpainted(h-margin:h+margin, w-margin:w+margin), 1, dim);
-    patches(patch,1:end-2) = pixels(patch+patch_pixels);
+    for ii = 1:Nc
+        patches(patch,(1:Npp)+(ii-1)*Npp) = pixels(patch+patch_pixels,ii);
+    end
     % Update patches information priorities.
     Pinformation(patch,2) = mean(Pinformation(patch+patch_pixels,1));
 end

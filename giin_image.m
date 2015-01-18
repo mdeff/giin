@@ -59,6 +59,11 @@ switch(imtype)
         img = imcrop(img, [70,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [-40,40 ; 5,-20 ; -6,-3 ; 10,1 ; 16,7];
+    case 'lena3_color'
+        imsize = 100;
+        img = lena(1);
+        img = imcrop(img, [70,100,imsize-1,imsize-1]);
+        vertices = [-40,40 ; 5,-20 ; -6,-3 ; 10,1 ; 16,7];
     case 'lena4'
         imsize = 200;
         img = lena*256;
@@ -70,6 +75,15 @@ switch(imtype)
         vertices = [];
     case 'bungee'
         [img, mbungee] = extract_bungee();
+        % fix pixels in the border
+        mbungee(:,65:76)=0;
+        %img(end-4:end,65:76) = mean(img(end,[64,77]));
+        vertices = [];
+    case 'bungee_color'
+        [img, mbungee] = extract_bungee(1);
+        % fix pixels in the border
+        mbungee(:,65:76)=0;
+        %img(end-4:end,65:76,:) = repmat(mean(img(end,[64,77],:),2),5,76-65+1,1);
         vertices = [];
 	otherwise
         error('Unknown image type.');
@@ -103,10 +117,13 @@ end
 if strcmp(imtype,'bungee')
     obsimg = img;
     obsimg(mbungee) = -1e3;
-else
+elseif strcmp(imtype,'bungee_color')
+    obsimg = img;
+    obsimg(mbungee) = -1e3;
+else   
     xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
     obsimg = img;
-    obsimg(xyrange,xyrange) = -1e3;
+    obsimg(xyrange,xyrange,:) = -1e3;
 end
 
 end

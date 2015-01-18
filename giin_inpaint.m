@@ -52,8 +52,9 @@ Pstructure = nan(G.N, 1);
 
 % Information priority. First column is pixels priority, second is patches.
 % We don't want it to be zero to preserve sign when multiplied with Pstructure.
-Pinformation(pixels>=0,1) = 1;
-Pinformation(pixels<0,1) = 1e-4;
+Pinformation = zeros(G.N,2);
+Pinformation(pixels(:,1)>=0,1) = 1;
+Pinformation(pixels(:,1)<0, 1) = 1e-8;
 Pinformation(:,2) = nan(G.N,1);
 patch_pixels = giin_patch_vertices('pixels', gparam.graph.psize, max(G.coords(:,2)));
 for patch = find(unknowns<0).'
@@ -102,7 +103,7 @@ while ~isempty(currents) || first
 
     % Highest priority patch. Negate the value so that it won't be selected
     % again while we keep the information ([0,1] --> [-1,-2]).
-    [~,vertex] = max(Pstructure .* Pinformation(:,2));
+    [~,vertex] = max( (sign(Pstructure).*abs(Pstructure).^gparam.priority.p) .* Pinformation(:,2));
     Pstructure(vertex) = -1-Pstructure(vertex);
 
     if ~ismember(vertex, currents)
@@ -122,7 +123,7 @@ while ~isempty(currents) || first
         figure(10);
         width = max(G.coords(:,1));
         height = max(G.coords(:,2));
-        imshow(reshape(pixels,height,width), 'InitialMagnification',600);
+        imshow(reshape(pixels,height,width,size(pixels,2)), 'InitialMagnification',600);
         drawnow;
     end
 

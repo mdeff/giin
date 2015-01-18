@@ -10,7 +10,7 @@ gsp_start();
 init_unlocbox();
 
 % Experiment parameters. 
-imtype = 'bungee';
+imtype = 'lena3_color';
 
 plot = true;
 savefig = false;
@@ -27,8 +27,12 @@ sol = giin_global(G, obsimg, gparam);
 %% Visualize graph with image signal
 
 if plot
-    giin_plot_signal(G, pixels, false);
-    if savefig, saveas(gcf,['results/',imtype,'_patch_graph.png']); end
+    for ii = 1:size(pixels,2)
+        figure;
+        giin_plot_signal(G, pixels(:,ii), false);
+        if savefig, saveas(gcf,['results/',imtype,...
+                '_',num2str(ii),'_patch_graph.png']); end
+    end
 end
 
 %% Visualize priorities
@@ -58,23 +62,25 @@ saveas(gcf,'results/priorities.png');
 
 %% Results
 
+Nc = size(pixels,2);
+
 % Images.
 figure();
 subplot(2,2,1);
 imshow(img);
 title('Original');
 subplot(2,2,2);
-imshow(reshape(obsimg,imsize,imsize));
+imshow(reshape(obsimg,imsize,imsize,Nc));
 title('Masked');
 subplot(2,2,3);
-imshow(reshape(pixels,imsize,imsize));
+imshow(reshape(pixels,imsize,imsize,Nc));
 title('Inpainted');
 subplot(2,2,4);
-imshow(reshape(sol,imsize,imsize));
+imshow(reshape(sol,imsize,imsize,Nc));
 title(['Globally optimized (',gparam.optim.prior,')']);
 saveas(gcf,'results/inpainting.png');
 
 % Reconstruction errors.
 % fprintf('Observed image error (L2-norm) : %f\n', norm(reshape(img,[],1) - y));
-fprintf('Inpainting reconstruction error : %f\n', norm(reshape(img,[],1) - pixels));
-fprintf('Globally optimized reconstruction error : %f\n', norm(reshape(img,[],1) - sol));
+fprintf('Inpainting reconstruction error : %f\n', norm(reshape(img,[],Nc) - pixels));
+fprintf('Globally optimized reconstruction error : %f\n', norm(reshape(img,[],Nc) - sol));
