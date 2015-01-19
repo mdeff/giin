@@ -10,7 +10,7 @@ gsp_start();
 init_unlocbox();
 
 % Experiment parameters. 
-imtype = 'lena3_color';
+imtype = 'bungee_color';
 
 plot = true;
 savefig = false;

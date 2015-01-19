@@ -15,7 +15,7 @@ gparam.priority.heat_scale = 100; % Depends on sigma. 1000 for lena
 gparam.priority.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes). Linear time for gsp_cheby_op.
 gparam.priority.p = 0.5;
 
-gparam.inpainting.psize = 5; % Size of the patch being inpainted. Could be smaller than the comparizon patch.
+gparam.inpainting.psize = 3; % Size of the patch being inpainted. Could be smaller than the comparizon patch.
 gparam.inpainting.retrieve = 'copy'; % Average connected patches (average) or copy the strongest (copy).
 gparam.inpainting.compose = 'mixed'; % Keep known pixels (mixed) or overwrite everything (overwrite).
 

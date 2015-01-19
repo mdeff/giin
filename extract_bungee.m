@@ -6,7 +6,7 @@ if nargin<1
 end
     
 
-bungee = imread('bungee0.png');
+bungee = imread('bungee02.png');
 
 if color
     bungee = double(bungee)/256;
@@ -19,7 +19,7 @@ end
 %     colormap(gray);
 % end
 
-mask = imread('bungee1.png');
+mask = imread('bungee12.png');
 
 mask = mask(:,:,1)==0 & mask(:,:,2)==255 & mask(:,:,3)==0;
 % figure;

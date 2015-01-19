@@ -37,6 +37,12 @@ switch(imtype)
         img = img + repmat((1:imsize).',1,imsize);
         img = (img > imsize) * contrast;
         vertices = [-8,-8 ; -2,-6 ; 1,2 ; 4,-5];
+    case 'diagonal_corner'
+        img = repmat(1:imsize,imsize,1);
+        img = img + repmat((1:imsize).',1,imsize);
+        img = (img > imsize) * contrast;
+        vertices = [];
+
     case 'cross'
         img(imsize/2+1:end,1:imsize/2) = contrast;
         img(1:imsize/2,imsize/2+1:end) = contrast;
@@ -70,19 +76,26 @@ switch(imtype)
         img = imcrop(img, [200,1,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [];
+        
+	case 'lena4_color'
+        imsize = 200;
+        img = lena(1);
+        img = imcrop(img, [200,1,imsize-1,imsize-1]);
+        img = double(img);
+        vertices = [];
     case 'lenafull'
         img = lena;
         vertices = [];
     case 'bungee'
         [img, mbungee] = extract_bungee();
         % fix pixels in the border
-        mbungee(:,65:76)=0;
+        %mbungee(end,65:76)=0;
         %img(end-4:end,65:76) = mean(img(end,[64,77]));
         vertices = [];
     case 'bungee_color'
         [img, mbungee] = extract_bungee(1);
         % fix pixels in the border
-        mbungee(:,65:76)=0;
+        %mbungee(end,65:76)=0;
         %img(end-4:end,65:76,:) = repmat(mean(img(end,[64,77],:),2),5,76-65+1,1);
         vertices = [];
 	otherwise
@@ -101,6 +114,7 @@ end
 
 % Corner markers (could break KNN, it was a bug).
 if strcmp(imtype, 'horizontal') || strcmp(imtype, 'vertical')
+    psize = 5;
     margin = floor(psize / 2);
     img(1+margin,1+margin) = 0.2;
     img(imsize-margin,imsize-margin) = 1.0;
@@ -120,6 +134,9 @@ if strcmp(imtype,'bungee')
 elseif strcmp(imtype,'bungee_color')
     obsimg = img;
     obsimg(mbungee) = -1e3;
+elseif strcmp(imtype,'diagonal_corner')
+    obsimg = img;
+    obsimg(1:10,end-10:end) = -1e3;
 else   
     xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
     obsimg = img;

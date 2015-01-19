@@ -28,6 +28,7 @@ tstart = tic;
 % will end up with a value of -4. The minimum is -psize^2.
 unknowns = (patches<0) .* patches;
 unknowns = sum(unknowns,2) / 1e3;
+Nc = size(pixels,2);
 
 % List of new vertices considered for inpainting.
 % news = find(unknowns<0).';
@@ -78,7 +79,7 @@ while ~isempty(currents) || first
     news = find(unknowns<0).';
 
     % We only consider patches with less than some number of missing pixels.
-    news = news(unknowns(news)>=-gparam.connect.max_unknown_pixels);
+    news = news(unknowns(news)>=-gparam.connect.max_unknown_pixels*Nc);
     % Which are not already connected.
     news = news(~ismember(news, currents));
     % Neither already visited (to prevent infinite loop and reconnections).
