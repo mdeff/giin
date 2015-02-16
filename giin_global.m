@@ -1,4 +1,4 @@
-function [ sol ] = giin_global( G, img, gparam )
+function [ sol ] = giin_global( G, img, imgstart, gparam )
 %GIIN_GLOBAL Global stage by convex optimization.
 %   We inpaint again the image using the created non-local graph.
 
@@ -11,6 +11,7 @@ verbose = 1;
 M = reshape(img(:,:,1)>=0, [], 1);
 M = repmat(M,1,size(img,3));
 y = M .* reshape(img, [], size(img,3));
+imgstart = reshape(imgstart, [], size(img,3));
 
 % Data term.
 % fdata.grad = @(x) 2*M.*(M.*x-y);
@@ -24,14 +25,19 @@ param_b2.epsilon = gparam.optim.sigma*sqrt(sum(M(:)));
 fdata.prox = @(x,T) proj_b2(x,T,param_b2);
 fdata.eval = @(x) eps;
 
+if ~gparam.optim.sigma
+   fdata.prox = @(x,T) x - M.*x + y; 
+end
+
 % Prior.
 param_prior.verbose = verbose-1;
 switch(gparam.optim.prior)
     
     % Thikonov prior.
     case 'thikonov'
-        fprior.prox = @(x,T) gsp_prox_tik(x,T,G,param_prior);
+        %fprior.prox = @(x,T) gsp_prox_tik(x,T,G,param_prior);
         fprior.eval = @(x) sum(gsp_norm_tik(G,x));
+        fprior.grad = @(x) 2*G.L*x;
     
     % TV prior.
     case 'tv'
@@ -46,9 +52,14 @@ end
 
 % Solve the convex optimization problem.
 param_solver.verbose = verbose;
-param_solver.tol = 1e-7;
+param_solver.tol = 1e-12;
 param_solver.maxit = gparam.optim.maxit;
-[sol, info] = douglas_rachford(y,fprior,fdata,param_solver);
+if strcmp('thikonov',gparam.optim.prior)
+    param_solver.gamma = 0.5/G.lmax;
+    [sol, info] = forward_backward(imgstart,fdata, fprior,param_solver);
+else
+    [sol, info] = douglas_rachford(imgstart,fprior,fdata,param_solver);
+end
 
 % Execution time.
 fprintf('Global optimization : %f (%d iterations)\n', toc(tstart), info.iter);
