@@ -10,9 +10,9 @@ gsp_start();
 init_unlocbox();
 
 % Experiment parameters. 
-imtype = 'bungee_color';
+imtype = 'lena3';
 
-plot = true;
+plot = false;
 savefig = false;
 
 %% Inpainting algorithm
@@ -20,12 +20,26 @@ savefig = false;
 gparam = giin_default_parameters();
 [img, obsimg, imsize, vertices] = giin_image(imtype, true);
 [G, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
+
+
 %%
+Nc = size(pixels,2);
+
 [G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, plot);
-sol = giin_global(G, obsimg, gparam);
+%%
+sol = zeros(size(pixels));
+G = gsp_estimate_lmax(G);
+
+for ii = 1:Nc
+    sol(:,ii) = giin_global(G, obsimg(:,:,ii),reshape(pixels(:,ii),size(img,1),size(img,2)), gparam);
+end
+
+%% Save the workspace
+
+save(['results/',imtype,'.mat']);
 
 %% Visualize graph with image signal
-
+try
 if plot
     for ii = 1:size(pixels,2)
         figure;
@@ -62,7 +76,6 @@ saveas(gcf,'results/priorities.png');
 
 %% Results
 
-Nc = size(pixels,2);
 
 % Images.
 figure();
@@ -84,3 +97,5 @@ saveas(gcf,'results/inpainting.png');
 % fprintf('Observed image error (L2-norm) : %f\n', norm(reshape(img,[],1) - y));
 fprintf('Inpainting reconstruction error : %f\n', norm(reshape(img,[],Nc) - pixels));
 fprintf('Globally optimized reconstruction error : %f\n', norm(reshape(img,[],Nc) - sol));
+
+end
