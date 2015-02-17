@@ -2,3 +2,5 @@
 *.jpg
 *.m~
 *.mat
+.DS_STORE
+*@eaDir*
