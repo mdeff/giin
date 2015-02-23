@@ -1,4 +1,4 @@
-function giin_plot_priorities( vertices, G, gparam, savefig )
+function giin_plot_priorities( vertices, G, gparam, figname )
 %GIIN_PLOT_PRIORITIES Visualize how priority is constructed.
 %   Given a list of vertices, show how their priority is constructed.
 
@@ -41,10 +41,12 @@ for n = 1:length(vertices)
     end
 end
 
-if savefig
-    saveas(fig1,'results/diffusion.png');
-    saveas(fig2,'results/bin.png');
-    saveas(fig3,'results/hough.png');
+if exist('figname', 'var')
+    saveas(fig1,[figname,'_diffusion.png']);
+    if strcmp(gparam.priority.type, 'threshold')
+        saveas(fig2,[figname,'_bin.png']);
+        saveas(fig3,[figname,'_hough.png']);
+    end
 end
 
 end

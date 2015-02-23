@@ -8,6 +8,9 @@ imtype = 'lenafull';
 plot = false;
 savefig = false;
 
+addpath('./lib');
+addpath('./data');
+
 gparam = giin_default_parameters();
 
 %% Image and graph

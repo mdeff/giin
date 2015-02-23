@@ -49,42 +49,43 @@ switch(imtype)
         vertices = [-9,-9 ; -2,-2 ; 1,2 ; 6,-3];
     case 'lena1'
         imsize = 30;
-        img = lena*256;
+        img = imread('lena.png');
         img = imcrop(img, [120,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [];
     case 'lena2'
         imsize = 100;
-        img = lena*256;
+        img = imread('lena.png');
         img = imcrop(img, [100,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [-40,40 ; -26,-20 ; -6,-3 ; 10,1 ; 16,10 ; 20,23];
     case 'lena3'
         imsize = 100;
-        img = lena*256;
+        img = imread('lena.png');
         img = imcrop(img, [70,100,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [-40,40 ; 5,-20 ; -6,-3 ; 10,1 ; 16,7];
     case 'lena3_color'
         imsize = 100;
-        img = lena(1);
+        img = imread('lena.png');
         img = imcrop(img, [70,100,imsize-1,imsize-1]);
         vertices = [-40,40 ; 5,-20 ; -6,-3 ; 10,1 ; 16,7];
     case 'lena4'
         imsize = 200;
-        img = lena*256;
+        img = imread('lena.png');
         img = imcrop(img, [200,1,imsize-1,imsize-1]);
         img = double(img) / 255;
         vertices = [];
         
 	case 'lena4_color'
         imsize = 200;
-        img = lena(1);
+        img = imread('lena.png');
         img = imcrop(img, [200,1,imsize-1,imsize-1]);
-        img = double(img);
+        img = double(img) / 255;
         vertices = [];
     case 'lenafull'
-        img = lena;
+        img = imread('lena.png');
+        img = double(img) / 255;
         vertices = [];
     case 'bungee'
         [img, mbungee] = extract_bungee();
