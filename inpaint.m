@@ -1,4 +1,4 @@
-function [ sol ] = inpaint( imname, fillcolor )
+function [ sol ] = inpaint( imname )
 %INPAINT Retrieve the missing pixels of an image.
 %   Usage :
 %       inpaint('bungee', [0,255,0]); 
@@ -23,7 +23,7 @@ gsp_start();
 %% Inpainting algorithm
 
 gparam = giin_default_parameters();
-[img, obsimg, imsize, vertices] = giin_image(imname, true);
+[img, obsimg, vertices] = giin_image(imname);
 [G, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
 
 
