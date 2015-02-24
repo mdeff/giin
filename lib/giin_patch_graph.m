@@ -29,7 +29,7 @@ param.nnparam.use_flann = 1;
 G.lmax = 2*max(G.d);
 
 % Execution time.
-fprintf('Time to create graph : %f seconds\n', toc(tstart));
+fprintf('Graph creation: %f seconds\n', toc(tstart));
 
 if plot
     figure();

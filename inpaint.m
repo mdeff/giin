@@ -1,12 +1,10 @@
 function [ sol ] = inpaint( imname )
 %INPAINT Retrieve the missing pixels of an image.
 %   Usage :
-%       inpaint('bungee', [0,255,0]); 
-%       [img, vertices] = giin_image('horizontal', 5, 50); 
+%       inpaint('bungee');
 %
 %   Input parameters :
 %       imname    : name of the image file
-%       fillcolor : color of the fill region
 %
 %   Output parameters :
 %       sol       : the inpainted image
@@ -16,32 +14,70 @@ function [ sol ] = inpaint( imname )
 % some priority, it then iteratively connect unknown patches to the graph.
 % A global optimization is run in the end.
 
+% Author: Michael Defferrard
+% Date: February 2015
+
 addpath('./lib');
 addpath('./data');
 gsp_start();
 
+%% Image loading
+
+% You may want to generate some special images with giin_image().
+% vertices = giin_image('vertical'); 
+
+img = double(imread([imname,'.png'])) / 255;
+Nx = size(img,1);
+Ny = size(img,2);
+Nc = size(img,3);
+
+% Extract the mask.
+if Nc == 1
+    mask = img == 1;
+else
+    mask = img(:,:,1)==0 & img(:,:,2)==1 & img(:,:,3)==0;
+    mask = repmat(mask, [1,1,3]);
+end
+
+% Unknown pixels are negative (known ones are in [0,1]). Negative enough
+% such that they don't connect to anything else than other unknown patches.
+unknown = -1e3;
+img(mask) = unknown;
+
 %% Inpainting algorithm
 
 gparam = giin_default_parameters();
-[img, obsimg, vertices] = giin_image(imname);
-[G, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
-
-
-%%
-Nc = size(pixels,2);
-
+[G, pixels, patches] = giin_patch_graph(img, gparam, false);
 [G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, false);
+
 %%
 sol = zeros(size(pixels));
 G = gsp_estimate_lmax(G);
 
 for ii = 1:Nc
-    sol(:,ii) = giin_global(G, obsimg(:,:,ii),reshape(pixels(:,ii),size(img,1),size(img,2)), gparam);
+    sol(:,ii) = giin_global(G, img(:,:,ii),reshape(pixels(:,ii),Nx,Ny), gparam);
 end
 
-%% Save the results
+%% Results saving
 
 filename = ['results/',imname];
 save([filename,'.mat']);
-imwrite(reshape(pixels,size(img)), [filename,'_inpainted.png'], 'png');
-imwrite(reshape(sol,size(img)), [filename,'_inpainted_global.png'], 'png');
+
+imwrite(reshape(pixels,size(img)), ...
+    [filename,'_inpainted.png'], 'png');
+imwrite(reshape(sol,size(img)), ...
+    [filename,'_inpainted_global.png'], 'png');
+imwrite(imadjust(reshape(Pstructure,Nx,Ny))*255, ...
+    hot(64), [filename,'_priority_structure.png'], 'png');
+imwrite(reshape(Pinformation(:,1),Nx,Ny)*255, ...
+    hot(64), [filename,'_priority_information_pixel.png'], 'png');
+imwrite(reshape(Pinformation(:,2),Nx,Ny)*255, ...
+    hot(64), [filename,'_priority_information_patch.png'], 'png');
+imwrite(imadjust(reshape(Pstructure .* Pinformation(:,2),Nx,Ny))*255, ...
+    hot(64), [filename,'_priority_global.png'], 'png');
+
+%% Visualization
+
+% load([filename,'.mat']);
+% giin_plot_signal(G, pixels(:,1), false);
+% giin_plot_priorities(vertices, G, gparam, filename);

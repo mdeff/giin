@@ -1,35 +1,24 @@
-function [ img, obsimg, vertices ] = giin_image( imname, fillcolor )
-%GIIN_IMAGE Load or generate an image.
+function [ vertices ] = giin_image( imname )
+%GIIN_IMAGE Generate an image. Result saved in the data sub-folder.
 %   Usage :
-%       img = giin_image('horizontal'); 
-%       [img, obsimg, vertices] = giin_image('bungee', [0,255,0]); 
+%       vertices = giin_image('vertical'); 
+%       inpaint('vertical'); 
 %
 %   Input parameters :
-%       imname    : name of the image file
-%       fillcolor : color of the fill region
+%       imname   : name of the image file
 %
 %   Output parameters :
-%       img      : matrix representing the original image
-%       obsimg   : matrix representing the masked image
 %       vertices : some vertices of interest for this image
 %
 
 % Author: Michael Defferrard
 % Date: February 2015
 
-if ~exist('fillcolor', 'var')
-    fillcolor = [0,255,0];
-end
-
 % Default parameters.
-imsize = 30;
+imsize = 50;
 img = zeros(imsize);
 contrast = 0.8;
 vertices = [];
-
-% Unknown pixels are negative (known ones are in [0,1]). Negative enough
-% such that they don't connect to anything else than other unknown patches.
-unknown = -1e3;
 
 switch(imname)
     
@@ -65,7 +54,7 @@ switch(imname)
         img = rgb2gray(imread('lena.png'));
         img = imcrop(img, [70,100,imsize-1,imsize-1]);
         vertices = [-40,40 ; 5,-20 ; -6,-3 ; 10,1 ; 16,7];
-    case 'lena3_color'
+    case 'lena3c'
         imsize = 100;
         img = imread('lena.png');
         img = imcrop(img, [70,100,imsize-1,imsize-1]);
@@ -74,21 +63,15 @@ switch(imname)
         imsize = 200;
         img = rgb2gray(imread('lena.png'));
         img = imcrop(img, [200,1,imsize-1,imsize-1]);
-	case 'lena4_color'
+	case 'lena4c'
         imsize = 200;
         img = imread('lena.png');
         img = imcrop(img, [200,1,imsize-1,imsize-1]);
     case 'lenafull'
         img = imread('lena.png');
         
-    % General case: load an image along with a mask.
     otherwise
-        img = imread([imname,'.png']);
-        obsimg = double(imread([imname,'_masked.png']));
-        mask = obsimg(:,:,1)==fillcolor(1) & ...
-            obsimg(:,:,2)==fillcolor(2) & obsimg(:,:,3)==fillcolor(3);
-        mask = repmat(mask, [1,1,3]);
-        obsimg(mask) = unknown;
+        error('Unknown image.');
 end
 
 % The priority computation of the vertices in this list will be displayed.
@@ -96,26 +79,23 @@ if numel(vertices) > 0
     vertices = vertices + floor(imsize/2);
     vertices = (vertices(:,1)-1)*imsize + vertices(:,2);
     vertices = vertices.';
-    if any(vertices<0)
+    if any(vertices < 0)
         error('Image size too small to show the vertices of interest.');
     end
-end
-
-% Create a square hole if we didn't load a mask.
-if ~exist('obsimg', 'var')
-    holesize = round(imsize / 4);
-    xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
-    obsimg = double(img);
-    obsimg(xyrange,xyrange,:) = unknown;
 end
 
 % Normalize the image in [0,1].
 if any(img(:) > 1)
 	img = double(img) / 255;
 end
-if any(obsimg(:) > 1)
-	obsimg = double(obsimg) / 255;
-    obsimg(obsimg<0) = unknown;
-end
+
+% Create a square hole.
+holesize = round(imsize / 4);
+xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
+obsimg = double(img);
+obsimg(xyrange,xyrange,:) = 1;
+
+imwrite(img, ['data/',imname,'_original.png']);
+imwrite(obsimg, ['data/',imname,'.png']);
 
 end
