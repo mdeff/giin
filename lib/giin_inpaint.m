@@ -134,7 +134,7 @@ end
 % Restore priorities.
 Pstructure = -1-Pstructure;
 
-% Execution time
-fprintf('Iterative inpainting : %f\n', toc(tstart));
+% Execution time.
+fprintf('Iterative inpainting : %f seconds\n', toc(tstart));
 
 end

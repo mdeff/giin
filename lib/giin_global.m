@@ -62,6 +62,6 @@ else
 end
 
 % Execution time.
-fprintf('Global optimization : %f (%d iterations)\n', toc(tstart), info.iter);
+fprintf('Global optimization : %f seconds (%d iterations)\n', toc(tstart), info.iter);
 
 end
