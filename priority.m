@@ -1,30 +1,42 @@
-% Assign structure priority to every pixel of an image.
+function [ Pstructure ] = priority( imname )
+%INPAINT Assign structure priority to every pixel of an image.
+%   Usage :
+%       giin_image('vertical'); 
+%       priority('vertical_original');
+%
+%   Input parameters :
+%       imname     : name of the image file
+%
+%   Output parameters :
+%       Pstructure : structure priority
+%
 
-close all; clear; clc;
-gsp_start();
-
-% Experiment parameters.
-imtype = 'lenafull';
-plot = false;
-savefig = false;
+% Author: Michael Defferrard
+% Date: February 2015
 
 addpath('./lib');
 addpath('./data');
+gsp_start();
+
+%% Image loading
+
+img = double(imread([imname,'.png'])) / 255;
+Nx = size(img,1);
+Ny = size(img,2);
+
+%% Patch graph
 
 gparam = giin_default_parameters();
-
-%% Image and graph
-
-[img, ~, imsize, vertices] = giin_image(imtype);
-G = giin_patch_graph(img, gparam, plot);
+G = giin_patch_graph(img, gparam, false);
 
 %% Priorities
 
 tstart = tic;
 Pstructure = nan(G.N, 1);
-N = G.N / 1000; % Chunks of 1000 to save runtime memory.
+N = ceil(G.N / 1000); % Chunks of 1000 to save runtime memory.
 for n = 0:N-1;
-    Pstructure = giin_priorities((1:1000)+n*1000, Pstructure, G, gparam);
+    range = n*1000+1 : min((n+1)*1000, G.N);
+    Pstructure = giin_priorities(range, Pstructure, G, gparam);
 end
 fprintf('Priorities : %f seconds\n', toc(tstart));
 
@@ -32,23 +44,14 @@ if any(isnan(Pstructure))
     error('Some pixels have no assigned priority !');
 end
 
-%% Save results
+%% Results saving
 
-save(['results/priority_',imtype], 'G', 'Pstructure', 'gparam');
+filename = ['results/',imname,'_priority'];
+save([filename,'.mat']);
+imwrite(imadjust(reshape(Pstructure,Nx,Ny)), [filename,'.png']);
 
-%% Visualize priorities
+%% Visualization
 
-% Show some vertices of interest.
-giin_plot_priorities(vertices, G, gparam, savefig);
-
-% Plot the priority.
-figure();
-subplot(1,2,1);
-imshow(img);
-title('Original image');
-subplot(1,2,2);
-imshow(imadjust(reshape(Pstructure,imsize,imsize)));
-% imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
-title('Structure priority');
-% colormap(hot);
-saveas(gcf,'results/priority.png');
+% load([filename,'.mat']);
+% imshow(imadjust(reshape(Pstructure,Nx,Ny)));
+% giin_plot_priorities(vertices, G, gparam, filename);

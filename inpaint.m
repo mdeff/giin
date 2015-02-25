@@ -1,7 +1,7 @@
 function [ sol ] = inpaint( imname )
 %INPAINT Retrieve the missing pixels of an image.
 %   Usage :
-%       giin_image('vertical'); 
+%       vertices = giin_image('vertical'); 
 %       inpaint('vertical');
 %
 %   Input parameters :
@@ -23,9 +23,6 @@ addpath('./data');
 gsp_start();
 
 %% Image loading
-
-% You may want to generate some special images with giin_image().
-% vertices = giin_image('vertical'); 
 
 img = double(imread([imname,'.png'])) / 255;
 Nx = size(img,1);
