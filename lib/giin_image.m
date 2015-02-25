@@ -93,7 +93,13 @@ end
 holesize = round(imsize / 4);
 xyrange = floor((imsize-holesize)/2)+1 : imsize-ceil((imsize-holesize)/2);
 obsimg = double(img);
-obsimg(xyrange,xyrange,:) = 1;
+if size(obsimg,3) == 1
+    obsimg(xyrange,xyrange) = 1;
+else
+    obsimg(xyrange,xyrange,1) = 0;
+    obsimg(xyrange,xyrange,2) = 1;
+    obsimg(xyrange,xyrange,3) = 0;
+end
 
 imwrite(img, ['data/',imname,'_original.png']);
 imwrite(obsimg, ['data/',imname,'.png']);
