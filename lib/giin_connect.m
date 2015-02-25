@@ -56,7 +56,6 @@ G = gsp_graph_default_parameters(G);
 
 if Ne + nnz(W) ~= G.Ne
     error('Some of the new connections were already there !');
-    %warning('Some of the new connections were already there !');
 end
 
 % Execution time.

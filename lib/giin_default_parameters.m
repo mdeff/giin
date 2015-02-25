@@ -13,7 +13,7 @@ gparam.priority.type = 'sparsity'; % Priority type : 'threshold', 'sparsity'.
 gparam.priority.threshold = 1e-3; % Threshold when creating priority from diffused energy.
 gparam.priority.heat_scale = 100; % Depends on sigma. 1000 for lena
 gparam.priority.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes). Linear time for gsp_cheby_op.
-gparam.priority.p = 0.5;
+gparam.priority.p = 0.5; % Balance between structure and information priority. Higher the number, higher the weight of structure.
 
 gparam.inpainting.psize = 3; % Size of the patch being inpainted. Could be smaller than the comparizon patch.
 gparam.inpainting.retrieve = 'copy'; % Average connected patches (average) or copy the strongest (copy).

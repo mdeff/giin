@@ -25,15 +25,16 @@ param_b2.epsilon = gparam.optim.sigma*sqrt(sum(M(:)));
 fdata.prox = @(x,T) proj_b2(x,T,param_b2);
 fdata.eval = @(x) eps;
 
+% Optimization.
 if ~gparam.optim.sigma
-   fdata.prox = @(x,T) x - M.*x + y; 
+   fdata.prox = @(x,T) x - M.*x + y;
 end
 
 % Prior.
 param_prior.verbose = verbose-1;
 switch(gparam.optim.prior)
     
-    % Thikonov prior.
+    % Thikonov prior (gradient is faster than proximal operator).
     case 'thikonov'
         %fprior.prox = @(x,T) gsp_prox_tik(x,T,G,param_prior);
         fprior.eval = @(x) sum(gsp_norm_tik(G,x));
@@ -54,11 +55,11 @@ end
 param_solver.verbose = verbose;
 param_solver.tol = 1e-12;
 param_solver.maxit = gparam.optim.maxit;
-if strcmp('thikonov',gparam.optim.prior)
+if strcmp(gparam.optim.prior,'thikonov')
     param_solver.gamma = 0.5/G.lmax;
-    [sol, info] = forward_backward(imgstart,fdata, fprior,param_solver);
+    [sol, info] = forward_backward(imgstart,fdata,fprior,param_solver);
 else
-    [sol, info] = douglas_rachford(imgstart,fprior,fdata,param_solver);
+    [sol, info] = douglas_rachford(imgstart,fdata,fprior,param_solver);
 end
 
 % Execution time.

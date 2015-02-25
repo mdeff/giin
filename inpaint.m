@@ -1,13 +1,14 @@
 function [ sol ] = inpaint( imname )
 %INPAINT Retrieve the missing pixels of an image.
 %   Usage :
-%       inpaint('bungee');
+%       giin_image('vertical'); 
+%       inpaint('vertical');
 %
 %   Input parameters :
-%       imname    : name of the image file
+%       imname : name of the image file
 %
 %   Output parameters :
-%       sol       : the inpainted image
+%       sol    : the inpainted image
 %
 % The goal of this script is to inpaint the missing pixels of an image. It
 % does so by constructing a patch graph of the known pixels. According to
@@ -50,12 +51,11 @@ gparam = giin_default_parameters();
 [G, pixels, patches] = giin_patch_graph(img, gparam, false);
 [G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, false);
 
-%%
+% Global optimization.
 sol = zeros(size(pixels));
 G = gsp_estimate_lmax(G);
-
 for ii = 1:Nc
-    sol(:,ii) = giin_global(G, img(:,:,ii),reshape(pixels(:,ii),Nx,Ny), gparam);
+    sol(:,ii) = giin_global(G, img(:,:,ii), reshape(pixels(:,ii),Nx,Ny), gparam);
 end
 
 %% Results saving
