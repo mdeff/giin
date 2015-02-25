@@ -46,7 +46,7 @@ W = sparse(spi, spj, spv, size(G.W,1), size(G.W,2));
 
 % Do not symmetrize the graph because we don't have tested the known
 % patches agains the considered : would be unfair.
-W = gsp_symetrize(W,'full');
+W = gsp_symetrize(W, gparam.graph.symetrize_type);
 
 Ne = G.Ne;
 

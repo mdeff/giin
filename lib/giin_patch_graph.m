@@ -16,10 +16,11 @@ param.patch_size = gparam.graph.psize;
 param.nnparam.center = 0;
 param.nnparam.resize = 0;
 param.nnparam.rescale = 0;
-param.nnparam.symetrize_type = 'full';
+param.nnparam.symetrize_type = gparam.graph.symetrize_type;
 param.nnparam.k = gparam.graph.knn;
 param.nnparam.sigma = gparam.graph.sigma;
 param.nnparam.use_flann = 1;
+
 [G, pixels, patches] = gsp_patch_graph(img, param);
 
 % Estimate the maximum eigenvalue of the Lapalacian (for filters).

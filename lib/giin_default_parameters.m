@@ -6,6 +6,7 @@ gparam.graph.psize = 5; % Patch size.
 gparam.graph.knn = 10; % Patch graph minimum number of connections (KNN).
 gparam.graph.sigma = 0.05; % Variance of the distance kernel. We want the graph weights to be well spread.
 gparam.graph.loc = 0.0003; % Importance of local information. (default 0.001, 0.1)
+gparam.graph.symetrize_type = 'full'; % Symmetrization applied to the weight matrix (full, average or none).
 
 gparam.connect.max_unknown_pixels = 2*gparam.graph.psize; % Maximum number of unknown pixels to connect a patch.
 
