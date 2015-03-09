@@ -22,8 +22,6 @@ addpath('./lib');
 addpath('./data');
 gsp_start();
 
-imtype = 'lena3_color';
-
 img = double(imread([imname,'.png'])) / 255;
 Nx = size(img,1);
 Ny = size(img,2);
@@ -39,7 +37,7 @@ end
 
 % Unknown pixels are negative (known ones are in [0,1]). Negative enough
 % such that they don't connect to anything else than other unknown patches.
-unknown = -1e3;
+unknown = nan;
 img(mask) = unknown;
 
 %% Inpainting algorithm

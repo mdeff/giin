@@ -8,9 +8,11 @@ init_unlocbox();
 verbose = 1;
 
 % Observed signal (image).
-M = reshape(img(:,:,1)>=0, [], 1);
+M = reshape(~isnan(img(:,:,1)), [], 1);
+img(isnan(img)) = 0;
 M = repmat(M,1,size(img,3));
 y = M .* reshape(img, [], size(img,3));
+
 imgstart = reshape(imgstart, [], size(img,3));
 
 % Data term.

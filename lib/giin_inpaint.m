@@ -26,6 +26,9 @@ tstart = tic;
 
 % Each unknown pixel has a value of -1e3. A patch with 4 unknown pixels
 % will end up with a value of -4. The minimum is -psize^2.
+patches(isnan(patches)) = -1e3;
+pixels(isnan(pixels)) = -1e3;
+
 unknowns = (patches<0) .* patches;
 unknowns = sum(unknowns,2) / 1e3;
 Nc = size(pixels,2);

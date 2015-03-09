@@ -24,7 +24,7 @@ deltas = sparse(vertices, 1:length(vertices), ones(size(vertices)), G.N, length(
 % gsp_plot_signal(G, deltas(:,1));
 
 % Graph filtering.
-param.cheb_order = gparam.priority.cheb_order;
+param.order = gparam.priority.order;
 diffused = gsp_filter_analysis(G, Hk, deltas, param);
 % f1_mat = gsp_vec2mat(f1_out, Nf);
 % f1_img = reshape(filtered, height, width);
@@ -34,8 +34,8 @@ diffused = gsp_filter_analysis(G, Hk, deltas, param);
 % Update priority signal. Not normalized in [0,1].
 switch(gparam.priority.type)
     
-    case 'threshold'
-        Pstructure(vertices) = sum(diffused > gparam.priority.threshold, 1);% / G.N^2;
+    case 'nthreshold'
+        Pstructure(vertices) = sum(diffused > gparam.priority.thresholda, 1);% / G.N^2;
         % bin = diffused > max(diffused(:)) / 10;
 
     % Sparsity feature.
@@ -44,6 +44,19 @@ switch(gparam.priority.type)
         % ||T_ig||_1 = sum(abs(diffused), 1) = 1, i.e. energy is conserved
         % ||T_ig||_2 = sum(diffused.^2, 1)
         Pstructure(vertices) = sum(diffused.^2, 1);
+        
+    case 'threshold_l1'
+        diffused(diffused<gparam.priority.thresholda) = 0;
+        diffused(diffused>gparam.priority.thresholdb) = 0;
+
+        Pstructure(vertices) = max(sum(abs(diffused), 1).^2,gparam.priority.thresholda^2);
+        
+    case 'threshold_l2'
+        diffused(diffused<gparam.priority.thresholda) = 0;
+        diffused(diffused>gparam.priority.thresholdb) = 0;
+
+        Pstructure(vertices) = max(sum(abs(diffused).^2, 1),gparam.priority.thresholda^2);
+
         
     otherwise
         error('Unknown priority type.');

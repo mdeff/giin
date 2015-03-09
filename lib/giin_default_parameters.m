@@ -10,10 +10,11 @@ gparam.graph.symetrize_type = 'full'; % Symmetrization applied to the weight mat
 
 gparam.connect.max_unknown_pixels = 2*gparam.graph.psize; % Maximum number of unknown pixels to connect a patch.
 
-gparam.priority.type = 'sparsity'; % Priority type : 'threshold', 'sparsity'.
-gparam.priority.threshold = 1e-3; % Threshold when creating priority from diffused energy.
-gparam.priority.heat_scale = 100; % Depends on sigma. 1000 for lena
-gparam.priority.cheb_order = 30; % Order of the Chebyshev approximation (number of hopes). Linear time for gsp_cheby_op.
+gparam.priority.type = 'threshold_l1'; % Priority type : 'nthreshold', 'sparsity', 'threshold_l1', 'threshold_l2'.
+gparam.priority.thresholda = 0.005; % Threshold when creating priority from diffused energy (nthreshold, threshold_l1, threshold_l2)
+gparam.priority.thresholdb = 0.1;
+gparam.priority.heat_scale = 50; % Depends on sigma. 1000 for lena
+gparam.priority.order = 30; % Order of the Chebyshev approximation (number of hopes). Linear time for gsp_cheby_op.
 gparam.priority.p = 0.5; % Balance between structure and information priority. Higher the number, higher the weight of structure.
 
 gparam.inpainting.psize = 3; % Size of the patch being inpainted. Could be smaller than the comparizon patch.
