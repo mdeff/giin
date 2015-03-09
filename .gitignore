@@ -1,6 +1,9 @@
 *.png
 *.jpg
-*.m~
+*~
 *.mat
 .DS_STORE
 *@eaDir*
+*.log
+data/*
+results/*

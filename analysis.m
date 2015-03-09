@@ -9,6 +9,9 @@ imtype = 'lena3';
 plot = false;
 savefig = false;
 
+addpath('./lib');
+addpath('./data');
+
 gparam = giin_default_parameters();
 [img, obsimg, imsize] = giin_image(imtype, true);
 

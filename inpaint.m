@@ -1,101 +1,80 @@
-% Retrieve the missing pixels of an image.
+function [ sol ] = inpaint( imname )
+%INPAINT Retrieve the missing pixels of an image.
+%   Usage :
+%       vertices = giin_image('vertical'); 
+%       inpaint('vertical');
+%
+%   Input parameters :
+%       imname : name of the image file
+%
+%   Output parameters :
+%       sol    : the inpainted image
+%
 % The goal of this script is to inpaint the missing pixels of an image. It
 % does so by constructing a patch graph of the known pixels. According to
 % some priority, it then iteratively connect unknown patches to the graph.
 % A global optimization is run in the end.
 
-close all; 
-clear; clc;
-gsp_start();
-init_unlocbox();
+% Author: Michael Defferrard
+% Date: February 2015
 
-% Experiment parameters. 
+addpath('./lib');
+addpath('./data');
+gsp_start();
+
 imtype = 'lena3_color';
 
-plot = false;
-savefig = false;
+img = double(imread([imname,'.png'])) / 255;
+Nx = size(img,1);
+Ny = size(img,2);
+Nc = size(img,3);
+
+% Extract the mask.
+if Nc == 1
+    mask = img == 1;
+else
+    mask = img(:,:,1)==0 & img(:,:,2)==1 & img(:,:,3)==0;
+    mask = repmat(mask, [1,1,3]);
+end
+
+% Unknown pixels are negative (known ones are in [0,1]). Negative enough
+% such that they don't connect to anything else than other unknown patches.
+unknown = -1e3;
+img(mask) = unknown;
 
 %% Inpainting algorithm
 
 gparam = giin_default_parameters();
-[img, obsimg, imsize, vertices] = giin_image(imtype, true);
-[G, pixels, patches] = giin_patch_graph(obsimg, gparam, false);
+[G, pixels, patches] = giin_patch_graph(img, gparam, false);
+[G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, false);
 
-
-%%
-Nc = size(pixels,2);
-
-[G, pixels, Pstructure, Pinformation] = giin_inpaint(G, pixels, patches, gparam, plot);
-%%
+% Global optimization.
 sol = zeros(size(pixels));
 G = gsp_estimate_lmax(G);
-
 for ii = 1:Nc
-    sol(:,ii) = giin_global(G, obsimg(:,:,ii),reshape(pixels(:,ii),size(img,1),size(img,2)), gparam);
+    sol(:,ii) = giin_global(G, img(:,:,ii), reshape(pixels(:,ii),Nx,Ny), gparam);
 end
 
-%% Save the workspace
+%% Results saving
 
-save(['results/',imtype,'.mat']);
+filename = ['results/',imname];
+save([filename,'.mat']);
 
-%% Visualize graph with image signal
-try
-if plot
-    for ii = 1:size(pixels,2)
-        figure;
-        giin_plot_signal(G, pixels(:,ii), false);
-        if savefig, saveas(gcf,['results/',imtype,...
-                '_',num2str(ii),'_patch_graph.png']); end
-    end
-end
+imwrite(reshape(pixels,size(img)), ...
+    [filename,'_inpainted.png'], 'png');
+imwrite(reshape(sol,size(img)), ...
+    [filename,'_inpainted_global.png'], 'png');
+imwrite(imadjust(reshape(Pstructure,Nx,Ny))*255, ...
+    hot(64), [filename,'_priority_structure.png'], 'png');
+imwrite(reshape(Pinformation(:,1),Nx,Ny)*255, ...
+    hot(64), [filename,'_priority_information_pixel.png'], 'png');
+imwrite(reshape(Pinformation(:,2),Nx,Ny)*255, ...
+    hot(64), [filename,'_priority_information_patch.png'], 'png');
+imwrite(imadjust(reshape(Pstructure .* Pinformation(:,2),Nx,Ny))*255, ...
+    hot(64), [filename,'_priority_global.png'], 'png');
 
-%% Visualize priorities
+%% Visualization
 
-% Show some vertices of interest.
-giin_plot_priorities(vertices, G, gparam, savefig);
-
-% Plot the various priorities.
-figure();
-subplot(2,2,1);
-imshow(imadjust(reshape(Pstructure,imsize,imsize)));
-% imshow(reshape(Pstructure,imsize,imsize) / max(Pstructure));
-title('Structure priority');
-subplot(2,2,2);
-imshow(reshape(Pinformation(:,1), imsize, imsize));
-title('Pixel infomation priority');
-subplot(2,2,4);
-imshow(reshape(Pinformation(:,2), imsize, imsize));
-title('Patch infomation priority');
-subplot(2,2,3);
-imshow(imadjust(reshape(Pstructure .* Pinformation(:,2),imsize,imsize)));
-% imshow(reshape(Pstructure .* Pinformation(:,2), imsize, imsize) / max(Pstructure .* Pinformation(:,2)));
-title('Global priority');
-colormap(hot);
-
-saveas(gcf,'results/priorities.png');
-
-%% Results
-
-
-% Images.
-figure();
-subplot(2,2,1);
-imshow(img);
-title('Original');
-subplot(2,2,2);
-imshow(reshape(obsimg,imsize,imsize,Nc));
-title('Masked');
-subplot(2,2,3);
-imshow(reshape(pixels,imsize,imsize,Nc));
-title('Inpainted');
-subplot(2,2,4);
-imshow(reshape(sol,imsize,imsize,Nc));
-title(['Globally optimized (',gparam.optim.prior,')']);
-saveas(gcf,'results/inpainting.png');
-
-% Reconstruction errors.
-% fprintf('Observed image error (L2-norm) : %f\n', norm(reshape(img,[],1) - y));
-fprintf('Inpainting reconstruction error : %f\n', norm(reshape(img,[],Nc) - pixels));
-fprintf('Globally optimized reconstruction error : %f\n', norm(reshape(img,[],Nc) - sol));
-
-end
+% load([filename,'.mat']);
+% giin_plot_signal(G, pixels(:,1), false);
+% giin_plot_priorities(vertices, G, gparam, filename);

@@ -124,7 +124,7 @@ while ~isempty(currents) || first
         figure(10);
         width = max(G.coords(:,1));
         height = max(G.coords(:,2));
-        imshow(reshape(pixels,height,width,size(pixels,2)), 'InitialMagnification',600);
+        imshow(reshape(pixels,height,width,Nc), 'InitialMagnification',600);
         drawnow;
     end
 
@@ -134,7 +134,7 @@ end
 % Restore priorities.
 Pstructure = -1-Pstructure;
 
-% Execution time
-fprintf('Iterative inpainting : %f\n', toc(tstart));
+% Execution time.
+fprintf('Iterative inpainting : %f seconds\n', toc(tstart));
 
 end

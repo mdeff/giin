@@ -35,9 +35,9 @@ for ii = 1:length(vertices)
     start = (ii-1)*knn+1;
     spi(start:start+knn-1) = vertex;
     spj(start:start+knn-1) = neighbors;
-%     if sum(G.W(vertex,neighbors))
-%         error('Some of the new connections were already there !');
-%     end
+    if sum(G.W(vertex,neighbors))
+        error('Some of the new connections were already there !');
+    end
     spv(start:start+knn-1) = exp(-dist.^2 / gparam.graph.sigma);
 end
 
@@ -46,7 +46,7 @@ W = sparse(spi, spj, spv, size(G.W,1), size(G.W,2));
 
 % Do not symmetrize the graph because we don't have tested the known
 % patches agains the considered : would be unfair.
-W = gsp_symetrize(W,'full');
+W = gsp_symetrize(W, gparam.graph.symetrize_type);
 
 Ne = G.Ne;
 
@@ -56,7 +56,6 @@ G = gsp_graph_default_parameters(G);
 
 if Ne + nnz(W) ~= G.Ne
     error('Some of the new connections were already there !');
-    %warning('Some of the new connections were already there !');
 end
 
 % Execution time.

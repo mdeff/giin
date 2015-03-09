@@ -80,7 +80,7 @@ patches(vertex,:) = new .* M + old .* ~M;
 Npp = gparam.graph.psize^2;
 for ii = 1:Nc
 %    pixels(vertex+patch_pixels,ii) = patches(vertex,1:end-2).';
-pixels(vertex+patch_pixels,ii) = patches(vertex,(1:Npp)+(ii-1)*Npp).';
+    pixels(vertex+patch_pixels,ii) = patches(vertex,(1:Npp)+(ii-1)*Npp).';
 end
 
 % Update pixels information priorities.
