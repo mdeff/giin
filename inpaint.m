@@ -10,7 +10,7 @@ gsp_start();
 init_unlocbox();
 
 % Experiment parameters. 
-imtype = 'lena3';
+imtype = 'lena3_color';
 
 plot = false;
 savefig = false;

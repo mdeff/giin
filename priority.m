@@ -4,7 +4,7 @@ close all; clear; clc;
 gsp_start();
 
 % Experiment parameters.
-imtype = 'lenafull';
+imtype = 'lena4';
 plot = false;
 savefig = false;
 
