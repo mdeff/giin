@@ -10,8 +10,8 @@ exemplar-based algorithm. Our method achieved state-of-the-art performances.
 
 ### Requirements
 
-* [GSPbox](https://lts2research.epfl.ch/gsp/): graph signal processing toolbox
-* [UNLocBoX](http://unlocbox.sourceforge.net/): convex optimization toolbox
+* [GSPbox](https://lts2.epfl.ch/gsp/): graph signal processing toolbox
+* [UNLocBoX](https://lts2.epfl.ch/unlocbox/): convex optimization toolbox
 
 ### Optional speed up
 
