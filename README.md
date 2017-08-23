@@ -42,6 +42,7 @@ to preserve it while reconstructing. We do it the following way:
 ### Requirements
 
 * [GSPbox](https://lts2.epfl.ch/gsp/): graph signal processing toolbox
+  (version 0.4.0 should work)
 * [UNLocBoX](https://lts2.epfl.ch/unlocbox/): convex optimization toolbox
 
 ### Optional speed-up
