@@ -1,10 +1,16 @@
 # GIIN: Graph-based Image Inpainting
 
-The project goal was to explore the applications of spectral graph theory to
-address the inpainting problem of large missing chunks. We used a non-local
-patch graph representation of the image and proposed a structure detector which
-leverages the graph representation and influences the fill-order of our
-exemplar-based algorithm. Our method achieved state-of-the-art performances.
+[Michaël Defferrard](https://deff.ch).
+Supervized by [Nathanaël Perraudin](https://perraudin.info),
+[Johan Paratte](https://www.linkedin.com/in/johan-paratte-a2070039).
+
+> The project goal was to explore the applications of spectral graph theory to
+> address the inpainting problem of large missing chunks. We used a non-local
+> patch graph representation of the image and proposed a structure detector which
+> leverages the graph representation and influences the fill-order of our
+> exemplar-based algorithm. Our method achieved state-of-the-art performances.
+
+Full report available at <https://infoscience.epfl.ch/record/218020>.
 
 ![inpainting](inpainting.png)
 
